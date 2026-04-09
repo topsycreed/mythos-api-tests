@@ -285,6 +285,7 @@ Behavior in CI:
 2. `npm run test:smoke` runs on every workflow run
 3. `npm run test:auth` runs only if both secrets are present
 4. `npm run test:crud` runs only if both secrets are present
+5. `npm run test:negative` runs only if both secrets are present
 
 ## Step 9. Install the Playwright VS Code Extension
 
@@ -333,6 +334,12 @@ Run authenticated CRUD tests for `/mythology`:
 
 ```bash
 npm run test:crud
+```
+
+Run negative tests for `/mythology` authorization and validation:
+
+```bash
+npm run test:negative
 ```
 
 Run tests in UI mode:
@@ -467,6 +474,22 @@ These tests:
 2. Obtain a JWT token through `/login`
 3. Work only with newly created entities, not system records
 4. Clean up created data after the test when needed
+
+## Step 16. Mythology Negative Test Starter
+
+The project also includes negative tests at `tests/api/mythology-negative.spec.ts`.
+
+What they cover:
+
+1. `401 Unauthorized` for write operations without JWT
+2. `400 Bad Request` for invalid create, patch, and put payloads
+3. `403 Forbidden` for protected system entities like ID `1`
+
+Why they matter:
+
+1. They protect the API contract for auth and validation errors
+2. They catch regressions that happy-path CRUD tests will not see
+3. They verify that system records remain read-only
 
 Before running it, update `.env` with the real API values for your project.
 

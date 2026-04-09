@@ -3,13 +3,17 @@ import { expect, test } from '@playwright/test';
 import { createAuthSession } from '../../src/api/auth';
 import {
   createMythologyEntity,
-  createMythologyPayload,
   deleteMythologyEntity,
   getMythologyById,
   patchMythologyEntity,
   replaceMythologyEntity,
   type MythologyEntity,
 } from '../../src/api/mythology';
+import {
+  createMythologyPayload,
+  createPatchMythologyPayload,
+  createReplacementMythologyPayload,
+} from '../support/mythology-test-data';
 
 test('POST /mythology creates a new entity', async ({ request }) => {
   const { token } = await createAuthSession(request);
@@ -35,9 +39,7 @@ test('PATCH /mythology/{id} updates selected fields', async ({ request }) => {
   await expect(createdEntityResponse).toBeOK();
 
   const createdEntity = (await createdEntityResponse.json()) as MythologyEntity;
-  const patchPayload = {
-    desc: 'Updated by Playwright patch test.',
-  };
+  const patchPayload = createPatchMythologyPayload();
 
   try {
     const patchResponse = await patchMythologyEntity(request, token, createdEntity.id, patchPayload);
@@ -65,11 +67,7 @@ test('PUT /mythology/{id} replaces entity fields', async ({ request }) => {
   await expect(createdEntityResponse).toBeOK();
 
   const createdEntity = (await createdEntityResponse.json()) as MythologyEntity;
-  const replacementPayload = createMythologyPayload({
-    category: 'gods',
-    desc: 'Replaced by Playwright put test.',
-    name: 'Playwright replacement entity',
-  });
+  const replacementPayload = createReplacementMythologyPayload();
 
   try {
     const putResponse = await replaceMythologyEntity(request, token, createdEntity.id, replacementPayload);

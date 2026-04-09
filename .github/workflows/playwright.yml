@@ -32,9 +32,12 @@ jobs:
     - name: Run CRUD tests
       if: env.HAS_AUTH_SECRETS == 'true'
       run: npm run test:crud
+    - name: Run negative tests
+      if: env.HAS_AUTH_SECRETS == 'true'
+      run: npm run test:negative
     - name: Skip auth tests when secrets are missing
       if: env.HAS_AUTH_SECRETS != 'true'
-      run: echo "QASANDBOX_USERNAME or QASANDBOX_PASSWORD is not configured. Skipping auth and CRUD tests."
+      run: echo "QASANDBOX_USERNAME or QASANDBOX_PASSWORD is not configured. Skipping auth, CRUD, and negative tests."
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
