@@ -15,39 +15,52 @@ import {
   createReplacementMythologyPayload,
 } from '../support/mythology-test-data';
 
-test('POST /mythology creates a new entity', async ({ request }) => {
-  const { token } = await createAuthSession(request);
+test('POST /mythology creates a new entity', { tag: '@crud' }, async ({ request }) => {
+  const { token } = await test.step('Create an authenticated session', async () => createAuthSession(request));
   const payload = createMythologyPayload();
 
-  const response = await createMythologyEntity(request, token, payload);
+  const response = await test.step('Create a mythology entity', async () =>
+    createMythologyEntity(request, token, payload),
+  );
 
   await expect(response).toBeOK();
   expect(response.status()).toBe(201);
 
-  const createdEntity = (await response.json()) as MythologyEntity;
+  const createdEntity = await test.step(
+    'Read created entity response',
+    async () => (await response.json()) as MythologyEntity,
+  );
 
   expect(createdEntity.id).toEqual(expect.any(Number));
   expect(createdEntity).toMatchObject(payload);
 
-  const deleteResponse = await deleteMythologyEntity(request, token, createdEntity.id);
+  const deleteResponse = await test.step('Clean up the created entity', async () =>
+    deleteMythologyEntity(request, token, createdEntity.id),
+  );
   expect(deleteResponse.status()).toBe(204);
 });
 
-test('PATCH /mythology/{id} updates selected fields', async ({ request }) => {
-  const { token } = await createAuthSession(request);
-  const createdEntityResponse = await createMythologyEntity(request, token, createMythologyPayload());
+test('PATCH /mythology/{id} updates selected fields', { tag: '@crud' }, async ({ request }) => {
+  const { token } = await test.step('Create an authenticated session', async () => createAuthSession(request));
+  const createdEntityResponse = await test.step('Create entity for patch test', async () =>
+    createMythologyEntity(request, token, createMythologyPayload()),
+  );
   await expect(createdEntityResponse).toBeOK();
 
   const createdEntity = (await createdEntityResponse.json()) as MythologyEntity;
   const patchPayload = createPatchMythologyPayload();
 
   try {
-    const patchResponse = await patchMythologyEntity(request, token, createdEntity.id, patchPayload);
+    const patchResponse = await test.step('Patch selected fields', async () =>
+      patchMythologyEntity(request, token, createdEntity.id, patchPayload),
+    );
 
     await expect(patchResponse).toBeOK();
     expect(patchResponse.status()).toBe(200);
 
-    const getResponse = await getMythologyById(request, createdEntity.id);
+    const getResponse = await test.step('Fetch entity after patch', async () =>
+      getMythologyById(request, createdEntity.id),
+    );
     await expect(getResponse).toBeOK();
 
     const updatedEntity = (await getResponse.json()) as MythologyEntity;
@@ -61,21 +74,27 @@ test('PATCH /mythology/{id} updates selected fields', async ({ request }) => {
   }
 });
 
-test('PUT /mythology/{id} replaces entity fields', async ({ request }) => {
-  const { token } = await createAuthSession(request);
-  const createdEntityResponse = await createMythologyEntity(request, token, createMythologyPayload());
+test('PUT /mythology/{id} replaces entity fields', { tag: '@crud' }, async ({ request }) => {
+  const { token } = await test.step('Create an authenticated session', async () => createAuthSession(request));
+  const createdEntityResponse = await test.step('Create entity for put test', async () =>
+    createMythologyEntity(request, token, createMythologyPayload()),
+  );
   await expect(createdEntityResponse).toBeOK();
 
   const createdEntity = (await createdEntityResponse.json()) as MythologyEntity;
   const replacementPayload = createReplacementMythologyPayload();
 
   try {
-    const putResponse = await replaceMythologyEntity(request, token, createdEntity.id, replacementPayload);
+    const putResponse = await test.step('Replace all entity fields', async () =>
+      replaceMythologyEntity(request, token, createdEntity.id, replacementPayload),
+    );
 
     await expect(putResponse).toBeOK();
     expect(putResponse.status()).toBe(200);
 
-    const getResponse = await getMythologyById(request, createdEntity.id);
+    const getResponse = await test.step('Fetch entity after put', async () =>
+      getMythologyById(request, createdEntity.id),
+    );
     await expect(getResponse).toBeOK();
 
     const updatedEntity = (await getResponse.json()) as MythologyEntity;
@@ -87,18 +106,24 @@ test('PUT /mythology/{id} replaces entity fields', async ({ request }) => {
   }
 });
 
-test('DELETE /mythology/{id} removes a created entity', async ({ request }) => {
-  const { token } = await createAuthSession(request);
-  const createdEntityResponse = await createMythologyEntity(request, token, createMythologyPayload());
+test('DELETE /mythology/{id} removes a created entity', { tag: '@crud' }, async ({ request }) => {
+  const { token } = await test.step('Create an authenticated session', async () => createAuthSession(request));
+  const createdEntityResponse = await test.step('Create entity for delete test', async () =>
+    createMythologyEntity(request, token, createMythologyPayload()),
+  );
   await expect(createdEntityResponse).toBeOK();
 
   const createdEntity = (await createdEntityResponse.json()) as MythologyEntity;
 
-  const deleteResponse = await deleteMythologyEntity(request, token, createdEntity.id);
+  const deleteResponse = await test.step('Delete the created entity', async () =>
+    deleteMythologyEntity(request, token, createdEntity.id),
+  );
 
   expect(deleteResponse.status()).toBe(204);
 
-  const getResponse = await getMythologyById(request, createdEntity.id);
+  const getResponse = await test.step('Verify entity is no longer available', async () =>
+    getMythologyById(request, createdEntity.id),
+  );
 
   expect(getResponse.status()).toBe(404);
 });

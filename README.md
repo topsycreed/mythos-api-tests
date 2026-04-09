@@ -257,8 +257,8 @@ GitHub Actions does not read your local `.env` file automatically.
 This project uses the following strategy in CI:
 
 1. `BASE_URL` is set directly in the workflow
-2. Public smoke tests always run
-3. Auth tests run only when repository secrets are configured
+2. Public smoke and read tests always run
+3. Auth, CRUD, and negative tests run only when repository secrets are configured
 
 Add these repository secrets in GitHub:
 
@@ -288,7 +288,88 @@ Behavior in CI:
 5. `npm run test:crud` runs only if both secrets are present
 6. `npm run test:negative` runs only if both secrets are present
 
-## Step 9. Install the Playwright VS Code Extension
+## Step 9. Run Test Suites by Tag
+
+The project groups tests with Playwright tags:
+
+1. `@smoke` for the minimal public health signal
+2. `@read` for public read scenarios
+3. `@auth` for registration and login
+4. `@crud` for authenticated create, update, and delete flows
+5. `@negative` for authorization and validation errors
+
+Why this helps:
+
+1. You can run only the suite you need without depending on file names
+2. The npm scripts stay stable even if tests are moved between files
+3. CI steps stay readable and focused on business purpose
+
+Run by tag directly with Playwright:
+
+```bash
+npx playwright test --grep @smoke
+npx playwright test --grep @read
+npx playwright test --grep @auth
+npx playwright test --grep @crud
+npx playwright test --grep @negative
+```
+
+You can also combine suites:
+
+```bash
+npx playwright test --grep "@auth|@crud"
+```
+
+## Step 10. Understand Reports, Traces, and CI Artifacts
+
+This project uses different report outputs for local runs and CI:
+
+1. Local runs use the `list` reporter with visible `test.step(...)` output plus the HTML report
+2. CI uses GitHub annotations plus the HTML report
+3. Test artifacts are stored in `test-results/`
+4. The HTML report is stored in `playwright-report/`
+
+Open the HTML report locally:
+
+```bash
+npx playwright show-report
+```
+
+or:
+
+```bash
+npm run report
+```
+
+Important difference:
+
+1. `playwright-report` is an HTML report
+2. `trace.zip` is a Playwright trace archive
+3. `https://trace.playwright.dev/` opens `trace.zip`, not the HTML report
+
+If you download the `playwright-report` artifact from GitHub Actions, open `index.html` inside it.
+
+If you download the `playwright-test-results` artifact, find the failing test folder and open its `trace.zip`.
+
+Open a trace locally with the Playwright CLI:
+
+```bash
+npx playwright show-trace path/to/trace.zip
+```
+
+Or drag `trace.zip` into the browser viewer:
+
+```text
+https://trace.playwright.dev/
+```
+
+Trace behavior in this project:
+
+1. CI keeps traces for failed tests
+2. Local runs collect traces on the first retry
+3. `test.step(...)` blocks make the flow easier to read in both the terminal and the HTML report
+
+## Step 11. Install the Playwright VS Code Extension
 
 To run and debug tests directly from the editor, install the Playwright extension in VS Code.
 
@@ -305,7 +386,7 @@ Why install it:
 3. See locators and test results more easily
 4. Improve day-to-day productivity during test development
 
-## Step 10. Run Tests from the Console
+## Step 12. Run Tests from the Console
 
 Run all tests:
 
@@ -322,30 +403,35 @@ npm test
 Run the smoke test for `GET /mythology`:
 
 ```bash
+npx playwright test --grep @smoke
 npm run test:smoke
 ```
 
 Run public read tests for list, filters, sorting, and `GET /mythology/{id}`:
 
 ```bash
+npx playwright test --grep @read
 npm run test:read
 ```
 
 Run auth tests for `POST /register` and `POST /login`:
 
 ```bash
+npx playwright test --grep @auth
 npm run test:auth
 ```
 
 Run authenticated CRUD tests for `/mythology`:
 
 ```bash
+npx playwright test --grep @crud
 npm run test:crud
 ```
 
 Run negative tests for `/mythology` authorization and validation:
 
 ```bash
+npx playwright test --grep @negative
 npm run test:negative
 ```
 
@@ -373,18 +459,6 @@ or:
 npm run test:headed
 ```
 
-Show the HTML report after a run:
-
-```bash
-npx playwright show-report
-```
-
-or:
-
-```bash
-npm run report
-```
-
 If browsers ever need to be installed again:
 
 ```bash
@@ -397,7 +471,7 @@ or:
 npm run pw:install
 ```
 
-## Step 11. Run Type Check
+## Step 13. Run Type Check
 
 Run TypeScript type-checking without generating output files:
 
@@ -413,7 +487,7 @@ npm run typecheck
 
 This is useful for catching typing mistakes early, even though Playwright can execute TypeScript tests directly.
 
-## Step 12. Recommended Project Structure
+## Step 14. Recommended Project Structure
 
 A simple structure that works well for an API-focused Playwright project:
 
@@ -421,24 +495,32 @@ A simple structure that works well for an API-focused Playwright project:
 mythos-api-tests/
   tests/
     api/
+    support/
   src/
+    api/
     config/
   playwright.config.ts
   tsconfig.json
   package.json
   .env.example
+  playwright-report/
+  test-results/
 ```
 
 What each part is for:
 
-1. `tests/api/` contains API smoke, regression, and scenario tests.
-2. `src/config/` contains environment-variable helpers and shared configuration code.
-3. `playwright.config.ts` contains the global Playwright configuration.
-4. `tsconfig.json` contains TypeScript compiler settings.
-5. `package.json` contains dependencies and runnable scripts.
-6. `.env.example` documents required environment variables.
+1. `tests/api/` contains API smoke, regression, and scenario tests
+2. `tests/support/` contains shared test data and helper inputs
+3. `src/api/` contains reusable API request helpers
+4. `src/config/` contains environment-variable helpers and shared configuration code
+5. `playwright.config.ts` contains the global Playwright configuration
+6. `tsconfig.json` contains TypeScript compiler settings
+7. `package.json` contains dependencies and runnable scripts
+8. `.env.example` documents required environment variables
+9. `playwright-report/` is generated after test runs for HTML reporting
+10. `test-results/` is generated after test runs for traces and attachments
 
-## Step 13. API Smoke Test Starter
+## Step 15. API Smoke Test Starter
 
 The project includes a smoke test in `tests/api/mythology-read.spec.ts`.
 
@@ -447,6 +529,7 @@ What it does:
 1. Uses the configured Playwright `baseURL`
 2. Sends `GET /mythology`
 3. Verifies that the response is successful and JSON
+4. Carries both `@smoke` and `@read` tags
 
 Why it works this way:
 
@@ -454,7 +537,7 @@ Why it works this way:
 2. It is a better real smoke test for this API than a placeholder endpoint
 3. `USERNAME` and `PASSWORD` stay in `.env` for the future `/register` and JWT flow
 
-## Step 14. Read Test Starter
+## Step 16. Read Test Starter
 
 The project includes read tests at `tests/api/mythology-read.spec.ts`.
 
@@ -466,7 +549,7 @@ What they cover:
 4. `GET /mythology/{id}` returns an existing entity
 5. `GET /mythology/{id}` returns `404` for a non-existent entity
 
-## Step 15. Auth Test Starter
+## Step 17. Auth Test Starter
 
 The project also includes auth tests at `tests/api/auth.spec.ts`.
 
@@ -476,7 +559,7 @@ What they cover:
 2. `POST /login` returns a JWT token for that user
 3. The username is generated uniquely from the env prefix on every run to avoid duplicate-registration failures
 
-## Step 16. Mythology CRUD Test Starter
+## Step 18. Mythology CRUD Test Starter
 
 The project also includes CRUD tests at `tests/api/mythology-crud.spec.ts`.
 
@@ -494,7 +577,7 @@ These tests:
 3. Work only with newly created entities, not system records
 4. Clean up created data after the test when needed
 
-## Step 17. Mythology Negative Test Starter
+## Step 19. Mythology Negative Test Starter
 
 The project also includes negative tests at `tests/api/mythology-negative.spec.ts`.
 
@@ -520,4 +603,6 @@ This setup gives you:
 2. TypeScript support with strict checking
 3. Environment variable support through `dotenv`
 4. GitHub Actions support from the start
-5. Easy test execution from both VS Code and the terminal
+5. Tagged suites for focused local and CI runs
+6. Clear HTML report and trace artifact handling
+7. Easy test execution from both VS Code and the terminal
