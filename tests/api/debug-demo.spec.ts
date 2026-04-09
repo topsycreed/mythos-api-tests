@@ -7,6 +7,7 @@ import {
 
 test(
   'Debug demo intentionally fails and attaches api-debug-log',
+  // Обычный suite пропускает @ignore-тесты, а специальный runner включает их только по запросу.
   { tag: '@ignore' },
   async ({ request, debugApiCall }) => {
     const response = await test.step('Fetch mythology list for debug demo', async () =>
@@ -31,6 +32,7 @@ test(
     );
 
     expectMythologyEntityListContract(body);
+    // Этот ассерт специально неверный: controlled failure нужен для демонстрации debug artifacts.
     expect(
       body.length,
       'Intentional failure: run this spec to verify api-debug-log attachments and reports.',

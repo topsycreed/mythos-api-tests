@@ -16,6 +16,11 @@
     "typecheck": "tsc --noEmit",
     "pw:install": "playwright install"
   },
+  "x-courseNotes": {
+    "scripts": "npm scripts — это короткие алиасы CLI-команд. Здесь через --grep запускаются логические наборы тестов по тегам, а не по именам файлов.",
+    "devDependencies": "Инструменты разработки: Playwright, TypeScript и типы Node нужны для написания, запуска и type-check тестов.",
+    "dependencies": "dotenv используется в runtime конфигурации Playwright, поэтому лежит в dependencies, а не только в devDependencies."
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

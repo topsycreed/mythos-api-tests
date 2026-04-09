@@ -13,6 +13,7 @@ import {
 
 test(
   'GET /mythology returns successful JSON response',
+  // Один и тот же тест участвует сразу в двух логических наборах: @smoke и @read.
   { tag: ['@read', '@smoke'] },
   async ({ request, debugApiCall }) => {
     const response = await test.step('Fetch mythology list', async () =>
@@ -41,6 +42,7 @@ test(
   },
 );
 
+// Цикл генерирует несколько самостоятельных тестов по одной и той же схеме проверки фильтра.
 for (const category of mythologyCategories) {
   test(
     `GET /mythology?category=${category} returns only ${category}`,
@@ -122,6 +124,8 @@ test(
     expectMythologyEntityListContract(ascEntities);
     expectMythologyEntityListContract(descEntities);
 
+    // Реальный API может меняться между запросами, поэтому сравниваем не весь список,
+    // а только пересечение id между двумя выдачами.
     const descIds = new Set(descEntities.map((entity) => entity.id));
     const ascIds = new Set(ascEntities.map((entity) => entity.id));
 
@@ -143,6 +147,7 @@ test('GET /mythology/{id} returns an existing entity', { tag: '@read' }, async (
   request,
   debugApiCall,
 }) => {
+  // Вместо жестко захардкоженного id берем реально существующую сущность из списка.
   const existingEntity = await test.step('Load mythology list and select an existing entity', async () => {
     const listResponse = await debugApiCall(
       {
@@ -194,6 +199,7 @@ test('GET /mythology/{id} returns 404 for a non-existent entity', { tag: '@read'
   request,
   debugApiCall,
 }) => {
+  // Заведомо большой id помогает стабильно моделировать сценарий not found.
   const response = await test.step('Fetch a non-existent mythology entity by id', async () =>
     debugApiCall(
       {

@@ -12,9 +12,11 @@ import {
   expectRegisterResponseContract,
 } from '../support/contract-assertions';
 
+// Auth endpoint чувствителен к burst-запросам, поэтому внутри файла тесты выполняются последовательно.
 test.describe.configure({ mode: 'serial' });
 
 test('POST /register creates a new user', { tag: '@auth' }, async ({ request, debugApiCall }) => {
+  // test.step делает прогон читабельнее в list reporter, html report и trace.
   const credentials = await test.step('Generate unique credentials', async () =>
     createUniqueCredentialsFromEnv(),
   );
@@ -34,6 +36,7 @@ test('POST /register creates a new user', { tag: '@auth' }, async ({ request, de
   );
 
   await expect(response).toBeOK();
+  // Сначала проверяем transport-level контракт: статус и content-type.
   expect(response.status()).toBe(201);
   expectJsonContentType(response);
 
@@ -42,6 +45,7 @@ test('POST /register creates a new user', { tag: '@auth' }, async ({ request, de
     async () => (await response.json()) as RegisterResponseBody,
   );
 
+  // Потом уже business/contract-level контракт тела ответа.
   expectRegisterResponseContract(body);
 });
 
@@ -68,6 +72,7 @@ test('POST /login returns a JWT token for a registered user', { tag: '@auth' }, 
   );
   await expect(registerResponse).toBeOK();
 
+  // Логин здесь использует только что зарегистрированного пользователя, чтобы проверить полный auth flow end-to-end.
   const loginResponse = await test.step('Log in with the registered user', async () =>
     debugApiCall(
       {

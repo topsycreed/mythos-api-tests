@@ -1,21 +1,36 @@
 {
   "compilerOptions": {
+    // target задает, на какую версию JavaScript ориентируем type-check и будущую компиляцию.
     "target": "ES2022",
+    // NodeNext нужен, чтобы TypeScript понимал современную модульную модель Node.js.
     "module": "NodeNext",
+    // moduleResolution управляет тем, как компилятор ищет импорты на диске.
     "moduleResolution": "NodeNext",
+    // lib подключает встроенные типы языка нужной версии.
     "lib": ["ES2022"],
+    // Здесь явно подключаются ambient types для Node.js и Playwright.
     "types": ["node", "@playwright/test"],
 
+    // strict включает более жесткую модель типизации для всего проекта.
     "strict": true,
+    // noImplicitAny не дает TypeScript молча подставлять any там, где тип не описан.
     "noImplicitAny": true,
+    // noUncheckedIndexedAccess напоминает, что элемент по индексу может отсутствовать.
     "noUncheckedIndexedAccess": true,
 
+    // esModuleInterop делает импорт CommonJS-пакетов удобнее в TS-коде.
     "esModuleInterop": true,
+    // resolveJsonModule разрешает импортировать json как модуль.
     "resolveJsonModule": true,
+    // skipLibCheck ускоряет проект за счет пропуска типизации declaration-файлов зависимостей.
     "skipLibCheck": true,
+    // sourceMap полезен для дебага, когда нужно сопоставить TS и итоговый JS.
     "sourceMap": true,
+    // outDir пригодится, если проект когда-нибудь начнет реально эмитить JS.
     "outDir": "dist"
   },
+  // include ограничивает область проекта только нужными папками и конфигом.
   "include": ["src", "tests", "playwright.config.ts"],
+  // exclude убирает зависимости из основной области type-check.
   "exclude": ["node_modules"]
 }
