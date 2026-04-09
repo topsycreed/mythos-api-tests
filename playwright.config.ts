@@ -1,5 +1,7 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
 import { defineConfig } from '@playwright/test';
+
+dotenv.config({ override: true });
 
 const isCI = !!process.env.CI;
 

@@ -1,6 +1,3 @@
-import { expect, test } from '@playwright/test';
-
-import { createAuthSession } from '../../src/api/auth';
 import {
   createMythologyEntity,
   createMythologyEntityWithoutAuth,
@@ -10,14 +7,16 @@ import {
   patchMythologyEntityWithoutAuth,
   replaceMythologyEntity,
   replaceMythologyEntityWithoutAuth,
-  type MythologyEntity,
 } from '../../src/api/mythology';
+import { expect, test } from '../fixtures/api-test';
 import {
   createIncompletePutPayload,
   createMythologyPayload,
   invalidCreateMythologyCases,
   protectedSystemEntityIds,
 } from '../support/mythology-test-data';
+
+test.describe.configure({ mode: 'serial' });
 
 const unauthorizedMutationCases = [
   {
@@ -55,87 +54,63 @@ for (const testCase of unauthorizedMutationCases) {
 }
 
 for (const testCase of invalidCreateMythologyCases) {
-  test(`POST /mythology returns 400 for ${testCase.name}`, { tag: '@negative' }, async ({ request }) => {
-    const { token } = await test.step('Create an authenticated session', async () =>
-      createAuthSession(request),
-    );
+  test(
+    `POST /mythology returns 400 for ${testCase.name}`,
+    { tag: '@negative' },
+    async ({ request, authToken }) => {
+      const response = await test.step(`Submit invalid create payload: ${testCase.name}`, async () =>
+        createMythologyEntity(request, authToken, testCase.payload),
+      );
 
-    const response = await test.step(`Submit invalid create payload: ${testCase.name}`, async () =>
-      createMythologyEntity(request, token, testCase.payload),
-    );
-
-    expect(response.status()).toBe(400);
-  });
+      expect(response.status()).toBe(400);
+    },
+  );
 }
 
 test(
   'PUT /mythology/{id} returns 400 when full payload is not provided',
   { tag: '@negative' },
-  async ({ request }) => {
-    const { token } = await test.step('Create an authenticated session', async () =>
-      createAuthSession(request),
+  async ({ request, authToken, mythologyEntityManager }) => {
+    const createdEntity = await test.step('Create entity for incomplete put test', async () =>
+      mythologyEntityManager.create(),
     );
-    const createdEntityResponse = await test.step('Create entity for incomplete put test', async () =>
-      createMythologyEntity(request, token, createMythologyPayload()),
-    );
-    await expect(createdEntityResponse).toBeOK();
 
-    const createdEntity = (await createdEntityResponse.json()) as MythologyEntity;
-
-    try {
-      const response = await test.step('Send put request with incomplete payload', async () =>
-        request.put(`mythology/${createdEntity.id}`, {
-          data: createIncompletePutPayload(createdEntity),
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }),
-      );
-
-      expect(response.status()).toBe(400);
-    } finally {
-      await test.step('Clean up the created entity', async () =>
-        deleteMythologyEntity(request, token, createdEntity.id),
-      );
-    }
-  },
-);
-
-test('PATCH /mythology/{id} returns 400 for an empty request body', { tag: '@negative' }, async ({ request }) => {
-  const { token } = await test.step('Create an authenticated session', async () =>
-    createAuthSession(request),
-  );
-  const createdEntityResponse = await test.step('Create entity for empty patch test', async () =>
-    createMythologyEntity(request, token, createMythologyPayload()),
-  );
-  await expect(createdEntityResponse).toBeOK();
-
-  const createdEntity = (await createdEntityResponse.json()) as MythologyEntity;
-
-  try {
-    const response = await test.step('Send patch request with empty body', async () =>
-      patchMythologyEntity(request, token, createdEntity.id, {}),
+    const response = await test.step('Send put request with incomplete payload', async () =>
+      request.put(`mythology/${createdEntity.id}`, {
+        data: createIncompletePutPayload(createdEntity),
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      }),
     );
 
     expect(response.status()).toBe(400);
-  } finally {
-    await test.step('Clean up the created entity', async () =>
-      deleteMythologyEntity(request, token, createdEntity.id),
+  },
+);
+
+test(
+  'PATCH /mythology/{id} returns 400 for an empty request body',
+  { tag: '@negative' },
+  async ({ request, authToken, mythologyEntityManager }) => {
+    const createdEntity = await test.step('Create entity for empty patch test', async () =>
+      mythologyEntityManager.create(),
     );
-  }
-});
+
+    const response = await test.step('Send patch request with empty body', async () =>
+      patchMythologyEntity(request, authToken, createdEntity.id, {}),
+    );
+
+    expect(response.status()).toBe(400);
+  },
+);
 
 for (const systemEntityId of protectedSystemEntityIds) {
   test(
     `PUT /mythology/{id} returns 403 for protected system entity ${systemEntityId}`,
     { tag: '@negative' },
-    async ({ request }) => {
-      const { token } = await test.step('Create an authenticated session', async () =>
-        createAuthSession(request),
-      );
-
+    async ({ request, authToken }) => {
       const response = await test.step(`Try to replace protected entity ${systemEntityId}`, async () =>
-        replaceMythologyEntity(request, token, systemEntityId, createMythologyPayload()),
+        replaceMythologyEntity(request, authToken, systemEntityId, createMythologyPayload()),
       );
 
       expect(response.status()).toBe(403);
@@ -145,13 +120,9 @@ for (const systemEntityId of protectedSystemEntityIds) {
   test(
     `DELETE /mythology/{id} returns 403 for protected system entity ${systemEntityId}`,
     { tag: '@negative' },
-    async ({ request }) => {
-      const { token } = await test.step('Create an authenticated session', async () =>
-        createAuthSession(request),
-      );
-
+    async ({ request, authToken }) => {
       const response = await test.step(`Try to delete protected entity ${systemEntityId}`, async () =>
-        deleteMythologyEntity(request, token, systemEntityId),
+        deleteMythologyEntity(request, authToken, systemEntityId),
       );
 
       expect(response.status()).toBe(403);

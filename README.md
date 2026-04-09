@@ -206,8 +206,8 @@ Example:
 
 ```bash
 BASE_URL=https://api.qasandbox.ru/api/
-USERNAME=your_test_username_prefix
-PASSWORD=your_test_password
+USERNAME=your_existing_test_username
+PASSWORD=your_existing_test_password
 ```
 
 Recommended example file for the team:
@@ -235,10 +235,16 @@ Typical file naming:
 1. `.env` for local real values
 2. `.env.example` for documented placeholders
 
+Important on Windows:
+
+1. Windows already defines a system `USERNAME` environment variable
+2. This project loads `.env` with override enabled, so the values in `.env` win over OS-level defaults
+3. This prevents local auth tests from accidentally using your Windows account name instead of the API test login
+
 The Playwright config loads `.env` automatically and uses:
 
 1. `BASE_URL` as Playwright `baseURL`
-2. `USERNAME` and `PASSWORD` as credentials for the future `/register` flow
+2. `USERNAME` and `PASSWORD` as login credentials for reusable authenticated suites
 
 The `/register` endpoint itself does not need to be stored in `.env`. It is a fixed API path and can stay in code.
 
@@ -247,8 +253,15 @@ No credentials are hardcoded in the test helpers.
 Auth helper behavior:
 
 1. `getConfiguredCredentials()` uses `USERNAME` and `PASSWORD` exactly as provided in `.env`
-2. `createUniqueCredentialsFromEnv()` uses `USERNAME` as a prefix and appends a unique suffix for registration tests
-3. If `USERNAME` or `PASSWORD` is missing, auth helpers fail explicitly instead of silently falling back to defaults
+2. `createAuthSession()` logs in with the configured user from `.env`
+3. `createUniqueCredentialsFromEnv()` uses an internal `playwright_user` prefix and appends a unique suffix for registration tests
+4. If `USERNAME` or `PASSWORD` is missing, auth helpers fail explicitly instead of silently falling back to defaults
+
+Important:
+
+1. `USERNAME` and `PASSWORD` should point to an existing reusable test user
+2. `@crud` and `@negative` suites reuse that user for login
+3. `@auth` tests still create unique users derived from the internal registration prefix
 
 ## Step 8. Configure GitHub Actions Secrets
 
@@ -495,6 +508,7 @@ A simple structure that works well for an API-focused Playwright project:
 mythos-api-tests/
   tests/
     api/
+    fixtures/
     support/
   src/
     api/
@@ -510,15 +524,16 @@ mythos-api-tests/
 What each part is for:
 
 1. `tests/api/` contains API smoke, regression, and scenario tests
-2. `tests/support/` contains shared test data and helper inputs
-3. `src/api/` contains reusable API request helpers
-4. `src/config/` contains environment-variable helpers and shared configuration code
-5. `playwright.config.ts` contains the global Playwright configuration
-6. `tsconfig.json` contains TypeScript compiler settings
-7. `package.json` contains dependencies and runnable scripts
-8. `.env.example` documents required environment variables
-9. `playwright-report/` is generated after test runs for HTML reporting
-10. `test-results/` is generated after test runs for traces and attachments
+2. `tests/fixtures/` contains shared Playwright fixtures for auth and resource lifecycle
+3. `tests/support/` contains shared test data and helper inputs
+4. `src/api/` contains reusable API request helpers
+5. `src/config/` contains environment-variable helpers and shared configuration code
+6. `playwright.config.ts` contains the global Playwright configuration
+7. `tsconfig.json` contains TypeScript compiler settings
+8. `package.json` contains dependencies and runnable scripts
+9. `.env.example` documents required environment variables
+10. `playwright-report/` is generated after test runs for HTML reporting
+11. `test-results/` is generated after test runs for traces and attachments
 
 ## Step 15. API Smoke Test Starter
 
@@ -572,10 +587,13 @@ What they cover:
 
 These tests:
 
-1. Create a fresh user through the auth helper
+1. Log in with the reusable configured test user from `.env`
 2. Obtain a JWT token through `/login`
 3. Work only with newly created entities, not system records
-4. Clean up created data after the test when needed
+4. Use shared fixtures from `tests/fixtures/api-test.ts` for auth and cleanup
+5. Reuse one auth session per worker to reduce repeated login traffic
+6. Run in serial mode inside the file to avoid burst rate limits on auth endpoints
+7. Clean up created data after the test when needed
 
 ## Step 19. Mythology Negative Test Starter
 
@@ -592,6 +610,13 @@ Why they matter:
 1. They protect the API contract for auth and validation errors
 2. They catch regressions that happy-path CRUD tests will not see
 3. They verify that system records remain read-only
+4. They reuse the same auth and temporary-entity fixture layer as CRUD tests
+
+Rate limit note:
+
+1. Auth, CRUD, and negative suites intentionally avoid aggressive in-file parallelism
+2. Shared fixtures reduce repeated auth calls during one run
+3. This helps prevent `429 Too Many Requests` from the sandbox API
 
 Before running it, update `.env` with the real API values for your project.
 
@@ -605,4 +630,5 @@ This setup gives you:
 4. GitHub Actions support from the start
 5. Tagged suites for focused local and CI runs
 6. Clear HTML report and trace artifact handling
-7. Easy test execution from both VS Code and the terminal
+7. Shared fixtures for auth and temporary test data cleanup
+8. Easy test execution from both VS Code and the terminal

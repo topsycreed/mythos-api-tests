@@ -8,6 +8,8 @@ import {
   type RegisterResponseBody,
 } from '../../src/api/auth';
 
+test.describe.configure({ mode: 'serial' });
+
 test('POST /register creates a new user', { tag: '@auth' }, async ({ request }) => {
   const credentials = await test.step('Generate unique credentials', async () =>
     createUniqueCredentialsFromEnv(),

@@ -20,6 +20,8 @@ export type AuthSession = {
   token: string;
 };
 
+const REGISTER_USERNAME_PREFIX = 'playwright_user';
+
 const requireEnvValue = (value: string | undefined, name: string): string => {
   if (!value) {
     throw new Error(`Missing required environment variable: ${name}`);
@@ -43,11 +45,11 @@ export const getConfiguredCredentials = (): AuthCredentials => ({
 });
 
 export const createUniqueCredentialsFromEnv = (): AuthCredentials => {
-  const configuredCredentials = getConfiguredCredentials();
+  const password = requireEnvValue(env.password, 'PASSWORD');
 
   return {
-    username: `${configuredCredentials.username}_${createUsernameSuffix()}`,
-    password: configuredCredentials.password,
+    username: `${REGISTER_USERNAME_PREFIX}_${createUsernameSuffix()}`,
+    password,
   };
 };
 
@@ -68,18 +70,14 @@ export const loginUser = (
   });
 
 export const createAuthSession = async (request: APIRequestContext): Promise<AuthSession> => {
-  const credentials = createUniqueCredentialsFromEnv();
-
-  const registerResponse = await registerUser(request, credentials);
-
-  if (!registerResponse.ok()) {
-    throw new Error(`Register failed: ${registerResponse.status()} ${await registerResponse.text()}`);
-  }
+  const credentials = getConfiguredCredentials();
 
   const loginResponse = await loginUser(request, credentials);
 
   if (!loginResponse.ok()) {
-    throw new Error(`Login failed: ${loginResponse.status()} ${await loginResponse.text()}`);
+    throw new Error(
+      `Login failed for configured USERNAME/PASSWORD: ${loginResponse.status()} ${await loginResponse.text()}`,
+    );
   }
 
   const body = (await loginResponse.json()) as LoginResponseBody;
