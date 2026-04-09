@@ -15,6 +15,11 @@ export type LoginResponseBody = {
   token: string;
 };
 
+export type AuthSession = {
+  credentials: AuthCredentials;
+  token: string;
+};
+
 const requireEnvValue = (value: string | undefined, name: string): string => {
   if (!value) {
     throw new Error(`Missing required environment variable: ${name}`);
@@ -61,3 +66,26 @@ export const loginUser = (
   request.post('login', {
     data: credentials,
   });
+
+export const createAuthSession = async (request: APIRequestContext): Promise<AuthSession> => {
+  const credentials = createUniqueCredentialsFromEnv();
+
+  const registerResponse = await registerUser(request, credentials);
+
+  if (!registerResponse.ok()) {
+    throw new Error(`Register failed: ${registerResponse.status()} ${await registerResponse.text()}`);
+  }
+
+  const loginResponse = await loginUser(request, credentials);
+
+  if (!loginResponse.ok()) {
+    throw new Error(`Login failed: ${loginResponse.status()} ${await loginResponse.text()}`);
+  }
+
+  const body = (await loginResponse.json()) as LoginResponseBody;
+
+  return {
+    credentials,
+    token: body.token,
+  };
+};

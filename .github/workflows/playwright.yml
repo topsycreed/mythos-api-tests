@@ -8,6 +8,11 @@ jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
+    env:
+      BASE_URL: https://api.qasandbox.ru/api/
+      USERNAME: ${{ secrets.QASANDBOX_USERNAME }}
+      PASSWORD: ${{ secrets.QASANDBOX_PASSWORD }}
+      HAS_AUTH_SECRETS: ${{ secrets.QASANDBOX_USERNAME != '' && secrets.QASANDBOX_PASSWORD != '' }}
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
@@ -17,8 +22,19 @@ jobs:
       run: npm ci
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
-    - name: Run Playwright tests
-      run: npx playwright test
+    - name: Run type check
+      run: npm run typecheck
+    - name: Run public smoke tests
+      run: npm run test:smoke
+    - name: Run auth tests
+      if: env.HAS_AUTH_SECRETS == 'true'
+      run: npm run test:auth
+    - name: Run CRUD tests
+      if: env.HAS_AUTH_SECRETS == 'true'
+      run: npm run test:crud
+    - name: Skip auth tests when secrets are missing
+      if: env.HAS_AUTH_SECRETS != 'true'
+      run: echo "QASANDBOX_USERNAME or QASANDBOX_PASSWORD is not configured. Skipping auth and CRUD tests."
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
