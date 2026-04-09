@@ -22,12 +22,26 @@ test.describe.configure({ mode: 'serial' });
 test('POST /mythology creates a new entity', { tag: '@crud' }, async ({
   request,
   authToken,
+  debugApiCall,
   mythologyEntityManager,
 }) => {
   const payload = createMythologyPayload();
 
   const response = await test.step('Create a mythology entity', async () =>
-    createMythologyEntity(request, authToken, payload),
+    debugApiCall(
+      {
+        label: 'Create a mythology entity',
+        request: {
+          method: 'POST',
+          url: 'mythology',
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+          body: payload,
+        },
+      },
+      () => createMythologyEntity(request, authToken, payload),
+    ),
   );
 
   await expect(response).toBeOK();
@@ -49,6 +63,7 @@ test('POST /mythology creates a new entity', { tag: '@crud' }, async ({
 test('PATCH /mythology/{id} updates selected fields', { tag: '@crud' }, async ({
   request,
   authToken,
+  debugApiCall,
   mythologyEntityManager,
 }) => {
   const createdEntity = await test.step('Create entity for patch test', async () =>
@@ -57,14 +72,36 @@ test('PATCH /mythology/{id} updates selected fields', { tag: '@crud' }, async ({
   const patchPayload = createPatchMythologyPayload();
 
   const patchResponse = await test.step('Patch selected fields', async () =>
-    patchMythologyEntity(request, authToken, createdEntity.id, patchPayload),
+    debugApiCall(
+      {
+        label: `Patch mythology entity ${createdEntity.id}`,
+        request: {
+          method: 'PATCH',
+          url: `mythology/${createdEntity.id}`,
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+          body: patchPayload,
+        },
+      },
+      () => patchMythologyEntity(request, authToken, createdEntity.id, patchPayload),
+    ),
   );
 
   await expect(patchResponse).toBeOK();
   expect(patchResponse.status()).toBe(200);
 
   const getResponse = await test.step('Fetch entity after patch', async () =>
-    getMythologyById(request, createdEntity.id),
+    debugApiCall(
+      {
+        label: `Fetch mythology entity ${createdEntity.id} after patch`,
+        request: {
+          method: 'GET',
+          url: `mythology/${createdEntity.id}`,
+        },
+      },
+      () => getMythologyById(request, createdEntity.id),
+    ),
   );
   await expect(getResponse).toBeOK();
   expectJsonContentType(getResponse);
@@ -81,6 +118,7 @@ test('PATCH /mythology/{id} updates selected fields', { tag: '@crud' }, async ({
 test('PUT /mythology/{id} replaces entity fields', { tag: '@crud' }, async ({
   request,
   authToken,
+  debugApiCall,
   mythologyEntityManager,
 }) => {
   const createdEntity = await test.step('Create entity for put test', async () =>
@@ -89,14 +127,36 @@ test('PUT /mythology/{id} replaces entity fields', { tag: '@crud' }, async ({
   const replacementPayload = createReplacementMythologyPayload();
 
   const putResponse = await test.step('Replace all entity fields', async () =>
-    replaceMythologyEntity(request, authToken, createdEntity.id, replacementPayload),
+    debugApiCall(
+      {
+        label: `Replace mythology entity ${createdEntity.id}`,
+        request: {
+          method: 'PUT',
+          url: `mythology/${createdEntity.id}`,
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+          body: replacementPayload,
+        },
+      },
+      () => replaceMythologyEntity(request, authToken, createdEntity.id, replacementPayload),
+    ),
   );
 
   await expect(putResponse).toBeOK();
   expect(putResponse.status()).toBe(200);
 
   const getResponse = await test.step('Fetch entity after put', async () =>
-    getMythologyById(request, createdEntity.id),
+    debugApiCall(
+      {
+        label: `Fetch mythology entity ${createdEntity.id} after put`,
+        request: {
+          method: 'GET',
+          url: `mythology/${createdEntity.id}`,
+        },
+      },
+      () => getMythologyById(request, createdEntity.id),
+    ),
   );
   await expect(getResponse).toBeOK();
   expectJsonContentType(getResponse);
@@ -111,6 +171,7 @@ test('PUT /mythology/{id} replaces entity fields', { tag: '@crud' }, async ({
 test('DELETE /mythology/{id} removes a created entity', { tag: '@crud' }, async ({
   request,
   authToken,
+  debugApiCall,
   mythologyEntityManager,
 }) => {
   const createdEntity = await test.step('Create entity for delete test', async () =>
@@ -118,13 +179,34 @@ test('DELETE /mythology/{id} removes a created entity', { tag: '@crud' }, async 
   );
 
   const deleteResponse = await test.step('Delete the created entity', async () =>
-    deleteMythologyEntity(request, authToken, createdEntity.id),
+    debugApiCall(
+      {
+        label: `Delete mythology entity ${createdEntity.id}`,
+        request: {
+          method: 'DELETE',
+          url: `mythology/${createdEntity.id}`,
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        },
+      },
+      () => deleteMythologyEntity(request, authToken, createdEntity.id),
+    ),
   );
 
   expect(deleteResponse.status()).toBe(204);
 
   const getResponse = await test.step('Verify entity is no longer available', async () =>
-    getMythologyById(request, createdEntity.id),
+    debugApiCall(
+      {
+        label: `Verify mythology entity ${createdEntity.id} is deleted`,
+        request: {
+          method: 'GET',
+          url: `mythology/${createdEntity.id}`,
+        },
+      },
+      () => getMythologyById(request, createdEntity.id),
+    ),
   );
 
   expect(getResponse.status()).toBe(404);

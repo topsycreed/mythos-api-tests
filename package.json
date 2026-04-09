@@ -6,6 +6,7 @@
     "test": "playwright test",
     "test:auth": "playwright test --grep @auth",
     "test:crud": "playwright test --grep @crud",
+    "test:debug-demo": "node ./scripts/run-ignored-tests.mjs",
     "test:negative": "playwright test --grep @negative",
     "test:read": "playwright test --grep @read",
     "test:smoke": "playwright test --grep @smoke",

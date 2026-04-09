@@ -310,12 +310,14 @@ The project groups tests with Playwright tags:
 3. `@auth` for registration and login
 4. `@crud` for authenticated create, update, and delete flows
 5. `@negative` for authorization and validation errors
+6. `@ignore` for intentionally excluded debug or demo tests
 
 Why this helps:
 
 1. You can run only the suite you need without depending on file names
 2. The npm scripts stay stable even if tests are moved between files
 3. CI steps stay readable and focused on business purpose
+4. Intentionally broken demo tests can stay in the repository without polluting normal runs
 
 Run by tag directly with Playwright:
 
@@ -332,6 +334,11 @@ You can also combine suites:
 ```bash
 npx playwright test --grep "@auth|@crud"
 ```
+
+Important:
+
+1. `@ignore` tests are excluded from normal `npm test` and `npx playwright test` runs by default
+2. This project uses `@ignore` for debug demos that are expected to fail on purpose
 
 ## Step 10. Understand Reports, Traces, and CI Artifacts
 
@@ -381,6 +388,40 @@ Trace behavior in this project:
 1. CI keeps traces for failed tests
 2. Local runs collect traces on the first retry
 3. `test.step(...)` blocks make the flow easier to read in both the terminal and the HTML report
+4. Failed API tests attach `api-debug-log` with request and response details
+
+What `api-debug-log` contains:
+
+1. Request method and URL
+2. Sanitized request headers and body
+3. Response status, headers, URL, and parsed body
+4. Error message and stack when the API call throws before a response is returned
+
+Quick debugging guide:
+
+1. `error-context.md` is generated automatically by Playwright for failed tests
+2. `api-debug-log.json` is this project's custom API attachment with sanitized request and response details
+3. `trace.zip` is the Playwright trace archive for timeline-style debugging in Trace Viewer
+
+Use them like this:
+
+1. Open `error-context.md` first for a short human-readable summary of the failure
+2. Open `api-debug-log.json` when you need to inspect the exact API request, response, and body content
+3. Open `trace.zip` when you need the full Playwright execution timeline and step-level context
+
+There is also an intentionally broken debug demo test in `tests/api/debug-demo.spec.ts`.
+
+Run it only when you want to validate report attachments and failure diagnostics:
+
+```bash
+npm run test:debug-demo
+```
+
+What to expect:
+
+1. The command should fail on purpose
+2. The failed test should produce `api-debug-log` in `test-results/`
+3. The HTML report should show the failing step and attachment
 
 ## Step 11. Install the Playwright VS Code Extension
 
@@ -506,6 +547,7 @@ A simple structure that works well for an API-focused Playwright project:
 
 ```text
 mythos-api-tests/
+  scripts/
   tests/
     api/
     fixtures/
@@ -523,17 +565,18 @@ mythos-api-tests/
 
 What each part is for:
 
-1. `tests/api/` contains API smoke, regression, and scenario tests
-2. `tests/fixtures/` contains shared Playwright fixtures for auth and resource lifecycle
-3. `tests/support/` contains shared test data, contract assertions, and helper inputs
-4. `src/api/` contains reusable API request helpers
-5. `src/config/` contains environment-variable helpers and shared configuration code
-6. `playwright.config.ts` contains the global Playwright configuration
-7. `tsconfig.json` contains TypeScript compiler settings
-8. `package.json` contains dependencies and runnable scripts
-9. `.env.example` documents required environment variables
-10. `playwright-report/` is generated after test runs for HTML reporting
-11. `test-results/` is generated after test runs for traces and attachments
+1. `scripts/` contains small utility launchers for special test flows
+2. `tests/api/` contains API smoke, regression, and scenario tests
+3. `tests/fixtures/` contains shared Playwright fixtures for auth and resource lifecycle
+4. `tests/support/` contains shared test data, contract assertions, and helper inputs
+5. `src/api/` contains reusable API request helpers
+6. `src/config/` contains environment-variable helpers and shared configuration code
+7. `playwright.config.ts` contains the global Playwright configuration
+8. `tsconfig.json` contains TypeScript compiler settings
+9. `package.json` contains dependencies and runnable scripts
+10. `.env.example` documents required environment variables
+11. `playwright-report/` is generated after test runs for HTML reporting
+12. `test-results/` is generated after test runs for traces and attachments
 
 ## Step 15. API Smoke Test Starter
 

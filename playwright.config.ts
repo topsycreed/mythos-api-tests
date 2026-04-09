@@ -4,12 +4,14 @@ import { defineConfig } from '@playwright/test';
 dotenv.config({ override: true, quiet: true });
 
 const isCI = !!process.env.CI;
+const includeIgnoredTests = process.env.PW_INCLUDE_IGNORE === '1';
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
   testDir: './tests',
+  grepInvert: includeIgnoredTests ? undefined : /@ignore/,
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */

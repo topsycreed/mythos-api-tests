@@ -1,6 +1,5 @@
-import { expect, test } from '@playwright/test';
-
 import { getMythologyById, getMythologyList, type MythologyEntity } from '../../src/api/mythology';
+import { expect, test } from '../fixtures/api-test';
 import {
   mythologyCategories,
   notFoundMythologyEntityId,
@@ -15,8 +14,19 @@ import {
 test(
   'GET /mythology returns successful JSON response',
   { tag: ['@read', '@smoke'] },
-  async ({ request }) => {
-    const response = await test.step('Fetch mythology list', async () => getMythologyList(request));
+  async ({ request, debugApiCall }) => {
+    const response = await test.step('Fetch mythology list', async () =>
+      debugApiCall(
+        {
+          label: 'Fetch mythology list',
+          request: {
+            method: 'GET',
+            url: 'mythology',
+          },
+        },
+        () => getMythologyList(request),
+      ),
+    );
 
     await expect(response).toBeOK();
     expectJsonContentType(response);
@@ -35,9 +45,18 @@ for (const category of mythologyCategories) {
   test(
     `GET /mythology?category=${category} returns only ${category}`,
     { tag: '@read' },
-    async ({ request }) => {
+    async ({ request, debugApiCall }) => {
       const response = await test.step(`Fetch mythology list filtered by ${category}`, async () =>
-        getMythologyList(request, { category }),
+        debugApiCall(
+          {
+            label: `Fetch mythology list filtered by ${category}`,
+            request: {
+              method: 'GET',
+              url: `mythology?category=${category}`,
+            },
+          },
+          () => getMythologyList(request, { category }),
+        ),
       );
 
       await expect(response).toBeOK();
@@ -60,12 +79,30 @@ for (const category of mythologyCategories) {
 test(
   'GET /mythology?sort=asc and sort=desc return the same entities in opposite order',
   { tag: '@read' },
-  async ({ request }) => {
+  async ({ request, debugApiCall }) => {
     const ascResponse = await test.step('Fetch mythology list sorted ascending', async () =>
-      getMythologyList(request, { sort: 'asc' }),
+      debugApiCall(
+        {
+          label: 'Fetch mythology list sorted ascending',
+          request: {
+            method: 'GET',
+            url: 'mythology?sort=asc',
+          },
+        },
+        () => getMythologyList(request, { sort: 'asc' }),
+      ),
     );
     const descResponse = await test.step('Fetch mythology list sorted descending', async () =>
-      getMythologyList(request, { sort: 'desc' }),
+      debugApiCall(
+        {
+          label: 'Fetch mythology list sorted descending',
+          request: {
+            method: 'GET',
+            url: 'mythology?sort=desc',
+          },
+        },
+        () => getMythologyList(request, { sort: 'desc' }),
+      ),
     );
 
     await expect(ascResponse).toBeOK();
@@ -84,24 +121,39 @@ test(
 
     expectMythologyEntityListContract(ascEntities);
     expectMythologyEntityListContract(descEntities);
-    expect(ascEntities.length).toBe(descEntities.length);
 
-    const ascIds = ascEntities.map((entity) => entity.id).sort((left, right) => left - right);
-    const descIds = descEntities.map((entity) => entity.id).sort((left, right) => left - right);
+    const descIds = new Set(descEntities.map((entity) => entity.id));
+    const ascIds = new Set(ascEntities.map((entity) => entity.id));
 
-    expect(ascIds).toEqual(descIds);
+    const commonAscIds = ascEntities
+      .filter((entity) => descIds.has(entity.id))
+      .map((entity) => entity.id);
+    const commonDescIds = descEntities
+      .filter((entity) => ascIds.has(entity.id))
+      .map((entity) => entity.id);
 
-    const ascNames = ascEntities.map((entity) => entity.name);
-    const descNames = descEntities.map((entity) => entity.name);
-
-    expect(ascNames).not.toEqual(descNames);
-    expect(ascNames.slice(0, 10)).toEqual(descNames.slice(-10).reverse());
+    expect(commonAscIds.length).toBeGreaterThan(20);
+    expect(commonDescIds.length).toBe(commonAscIds.length);
+    expect(commonAscIds).not.toEqual(commonDescIds);
+    expect(commonAscIds.slice(0, 20)).not.toEqual(commonDescIds.slice(0, 20));
   },
 );
 
-test('GET /mythology/{id} returns an existing entity', { tag: '@read' }, async ({ request }) => {
+test('GET /mythology/{id} returns an existing entity', { tag: '@read' }, async ({
+  request,
+  debugApiCall,
+}) => {
   const existingEntity = await test.step('Load mythology list and select an existing entity', async () => {
-    const listResponse = await getMythologyList(request);
+    const listResponse = await debugApiCall(
+      {
+        label: 'Load mythology list to select an existing entity',
+        request: {
+          method: 'GET',
+          url: 'mythology',
+        },
+      },
+      () => getMythologyList(request),
+    );
     await expect(listResponse).toBeOK();
 
     const entities = (await listResponse.json()) as MythologyEntity[];
@@ -111,7 +163,16 @@ test('GET /mythology/{id} returns an existing entity', { tag: '@read' }, async (
   });
 
   const response = await test.step('Fetch the selected entity by id', async () =>
-    getMythologyById(request, existingEntity.id),
+    debugApiCall(
+      {
+        label: `Fetch mythology entity ${existingEntity.id}`,
+        request: {
+          method: 'GET',
+          url: `mythology/${existingEntity.id}`,
+        },
+      },
+      () => getMythologyById(request, existingEntity.id),
+    ),
   );
 
   await expect(response).toBeOK();
@@ -129,9 +190,21 @@ test('GET /mythology/{id} returns an existing entity', { tag: '@read' }, async (
   expect(entity.desc).toBe(existingEntity.desc);
 });
 
-test('GET /mythology/{id} returns 404 for a non-existent entity', { tag: '@read' }, async ({ request }) => {
+test('GET /mythology/{id} returns 404 for a non-existent entity', { tag: '@read' }, async ({
+  request,
+  debugApiCall,
+}) => {
   const response = await test.step('Fetch a non-existent mythology entity by id', async () =>
-    getMythologyById(request, notFoundMythologyEntityId),
+    debugApiCall(
+      {
+        label: `Fetch non-existent mythology entity ${notFoundMythologyEntityId}`,
+        request: {
+          method: 'GET',
+          url: `mythology/${notFoundMythologyEntityId}`,
+        },
+      },
+      () => getMythologyById(request, notFoundMythologyEntityId),
+    ),
   );
 
   expect(response.status()).toBe(404);

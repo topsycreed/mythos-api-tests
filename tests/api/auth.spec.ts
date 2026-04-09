@@ -1,5 +1,3 @@
-import { expect, test } from '@playwright/test';
-
 import {
   createUniqueCredentialsFromEnv,
   loginUser,
@@ -7,6 +5,7 @@ import {
   type LoginResponseBody,
   type RegisterResponseBody,
 } from '../../src/api/auth';
+import { expect, test } from '../fixtures/api-test';
 import {
   expectJsonContentType,
   expectLoginResponseContract,
@@ -15,12 +14,24 @@ import {
 
 test.describe.configure({ mode: 'serial' });
 
-test('POST /register creates a new user', { tag: '@auth' }, async ({ request }) => {
+test('POST /register creates a new user', { tag: '@auth' }, async ({ request, debugApiCall }) => {
   const credentials = await test.step('Generate unique credentials', async () =>
     createUniqueCredentialsFromEnv(),
   );
 
-  const response = await test.step('Register a new user', async () => registerUser(request, credentials));
+  const response = await test.step('Register a new user', async () =>
+    debugApiCall(
+      {
+        label: 'Register a new user',
+        request: {
+          method: 'POST',
+          url: 'register',
+          body: credentials,
+        },
+      },
+      () => registerUser(request, credentials),
+    ),
+  );
 
   await expect(response).toBeOK();
   expect(response.status()).toBe(201);
@@ -34,18 +45,41 @@ test('POST /register creates a new user', { tag: '@auth' }, async ({ request }) 
   expectRegisterResponseContract(body);
 });
 
-test('POST /login returns a JWT token for a registered user', { tag: '@auth' }, async ({ request }) => {
+test('POST /login returns a JWT token for a registered user', { tag: '@auth' }, async ({
+  request,
+  debugApiCall,
+}) => {
   const credentials = await test.step('Generate unique credentials', async () =>
     createUniqueCredentialsFromEnv(),
   );
 
   const registerResponse = await test.step('Register the user before login', async () =>
-    registerUser(request, credentials),
+    debugApiCall(
+      {
+        label: 'Register the user before login',
+        request: {
+          method: 'POST',
+          url: 'register',
+          body: credentials,
+        },
+      },
+      () => registerUser(request, credentials),
+    ),
   );
   await expect(registerResponse).toBeOK();
 
   const loginResponse = await test.step('Log in with the registered user', async () =>
-    loginUser(request, credentials),
+    debugApiCall(
+      {
+        label: 'Log in with the registered user',
+        request: {
+          method: 'POST',
+          url: 'login',
+          body: credentials,
+        },
+      },
+      () => loginUser(request, credentials),
+    ),
   );
 
   await expect(loginResponse).toBeOK();
