@@ -9,9 +9,12 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     env:
+      # BASE_URL не секрет, поэтому его можно хранить прямо в workflow.
       BASE_URL: https://api.qasandbox.ru/api/
+      # USERNAME и PASSWORD уже чувствительные данные, потому их берём из GitHub Secrets.
       USERNAME: ${{ secrets.QASANDBOX_USERNAME }}
       PASSWORD: ${{ secrets.QASANDBOX_PASSWORD }}
+      # Этот флаг позволяет не валить pipeline, если секреты еще не настроены.
       HAS_AUTH_SECRETS: ${{ secrets.QASANDBOX_USERNAME != '' && secrets.QASANDBOX_PASSWORD != '' }}
     steps:
     - uses: actions/checkout@v4
@@ -28,6 +31,7 @@ jobs:
       run: npm run test:smoke
     - name: Run public read tests
       run: npm run test:read
+    # Protected suites запускаются только если у CI есть учетные данные reusable test user.
     - name: Run auth tests
       if: env.HAS_AUTH_SECRETS == 'true'
       run: npm run test:auth
@@ -40,6 +44,7 @@ jobs:
     - name: Skip auth tests when secrets are missing
       if: env.HAS_AUTH_SECRETS != 'true'
       run: echo "QASANDBOX_USERNAME or QASANDBOX_PASSWORD is not configured. Skipping auth, CRUD, and negative tests."
+    # Отчеты и test-results сохраняются как артефакты, чтобы падения можно было расследовать после job.
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:

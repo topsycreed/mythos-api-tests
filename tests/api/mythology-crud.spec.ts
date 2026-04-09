@@ -17,6 +17,7 @@ import {
   expectMythologyEntityContract,
 } from '../support/contract-assertions';
 
+// Мутации над backend-state безопаснее выполнять последовательно, чтобы избежать гонок и лишнего шума.
 test.describe.configure({ mode: 'serial' });
 
 test('POST /mythology creates a new entity', { tag: '@crud' }, async ({
@@ -25,6 +26,7 @@ test('POST /mythology creates a new entity', { tag: '@crud' }, async ({
   debugApiCall,
   mythologyEntityManager,
 }) => {
+  // Фабрика возвращает валидный payload по умолчанию, а не случайный объект "с нуля".
   const payload = createMythologyPayload();
 
   const response = await test.step('Create a mythology entity', async () =>
@@ -53,6 +55,7 @@ test('POST /mythology creates a new entity', { tag: '@crud' }, async ({
     async () => (await response.json()) as MythologyEntity,
   );
 
+  // Если сущность создавалась не через mythologyEntityManager.create(), id нужно трекать вручную для cleanup.
   mythologyEntityManager.track(createdEntity.id);
 
   expectMythologyEntityContract(createdEntity);
@@ -69,6 +72,7 @@ test('PATCH /mythology/{id} updates selected fields', { tag: '@crud' }, async ({
   const createdEntity = await test.step('Create entity for patch test', async () =>
     mythologyEntityManager.create(),
   );
+  // PATCH payload умышленно частичный: это и есть семантика PATCH.
   const patchPayload = createPatchMythologyPayload();
 
   const patchResponse = await test.step('Patch selected fields', async () =>
@@ -110,6 +114,7 @@ test('PATCH /mythology/{id} updates selected fields', { tag: '@crud' }, async ({
 
   expectMythologyEntityContract(updatedEntity);
   expect(updatedEntity.id).toBe(createdEntity.id);
+  // При PATCH непереданные поля должны остаться без изменений.
   expect(updatedEntity.name).toBe(createdEntity.name);
   expect(updatedEntity.category).toBe(createdEntity.category);
   expect(updatedEntity.desc).toBe(patchPayload.desc);
@@ -124,6 +129,7 @@ test('PUT /mythology/{id} replaces entity fields', { tag: '@crud' }, async ({
   const createdEntity = await test.step('Create entity for put test', async () =>
     mythologyEntityManager.create(),
   );
+  // PUT трактуем как полную замену ресурса, поэтому payload здесь полный.
   const replacementPayload = createReplacementMythologyPayload();
 
   const putResponse = await test.step('Replace all entity fields', async () =>
@@ -165,6 +171,7 @@ test('PUT /mythology/{id} replaces entity fields', { tag: '@crud' }, async ({
 
   expectMythologyEntityContract(updatedEntity);
   expect(updatedEntity.id).toBe(createdEntity.id);
+  // toMatchObject проверяет пересечение свойств и не ломается, если сервер добавляет свои поля.
   expect(updatedEntity).toMatchObject(replacementPayload);
 });
 
@@ -196,6 +203,7 @@ test('DELETE /mythology/{id} removes a created entity', { tag: '@crud' }, async 
 
   expect(deleteResponse.status()).toBe(204);
 
+  // DELETE тест сильнее, если после удаления дополнительно проверить 404 на повторный GET.
   const getResponse = await test.step('Verify entity is no longer available', async () =>
     debugApiCall(
       {

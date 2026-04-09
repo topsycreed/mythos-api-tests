@@ -20,8 +20,10 @@ import {
   expectJsonContentType,
 } from '../support/contract-assertions';
 
+// Negative-тесты тоже лучше выполнять serial, чтобы не раздувать auth traffic и mutation noise.
 test.describe.configure({ mode: 'serial' });
 
+// Здесь negative cases описываются данными, а не копипастой тестов.
 const unauthorizedMutationCases = [
   {
     name: 'POST /mythology returns 401 without JWT token',
@@ -30,6 +32,7 @@ const unauthorizedMutationCases = [
       method: 'POST',
       url: 'mythology',
     },
+    // Используем function, а не arrow function, потому что внутри нужен this.payload.
     run: function ({
       request,
     }: {
@@ -89,6 +92,7 @@ for (const testCase of unauthorizedMutationCases) {
           label: testCase.name,
           request: {
             ...testCase.request,
+            // 'payload' in testCase — это сужение по наличию свойства во время выполнения.
             body: 'payload' in testCase ? testCase.payload : undefined,
           },
         },
@@ -113,6 +117,7 @@ for (const testCase of invalidCreateMythologyCases) {
     `POST /mythology returns 400 for ${testCase.name}`,
     { tag: '@negative' },
     async ({ request, authToken, debugApiCall }) => {
+      // Валидировать 400-ошибки тоже удобно таблицами: добавили кейс в данные — получили новый тест.
       const response = await test.step(`Submit invalid create payload: ${testCase.name}`, async () =>
         debugApiCall(
           {
@@ -143,7 +148,7 @@ for (const testCase of invalidCreateMythologyCases) {
   );
 }
 
-  test(
+test(
   'PUT /mythology/{id} returns 400 when full payload is not provided',
   { tag: '@negative' },
   async ({ request, authToken, debugApiCall, mythologyEntityManager }) => {
@@ -194,6 +199,7 @@ test(
       mythologyEntityManager.create(),
     );
 
+    // Пустой PATCH — отдельный validation-case, отличный от 401 или 403.
     const response = await test.step('Send patch request with empty body', async () =>
       debugApiCall(
         {
@@ -223,6 +229,7 @@ test(
   },
 );
 
+// Одна бизнес-идея "системные записи нельзя менять" разворачивается в несколько тестов через список id.
 for (const systemEntityId of protectedSystemEntityIds) {
   test(
     `PUT /mythology/{id} returns 403 for protected system entity ${systemEntityId}`,
