@@ -7,6 +7,11 @@ import {
   type LoginResponseBody,
   type RegisterResponseBody,
 } from '../../src/api/auth';
+import {
+  expectJsonContentType,
+  expectLoginResponseContract,
+  expectRegisterResponseContract,
+} from '../support/contract-assertions';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -19,15 +24,14 @@ test('POST /register creates a new user', { tag: '@auth' }, async ({ request }) 
 
   await expect(response).toBeOK();
   expect(response.status()).toBe(201);
-  expect(response.headers()['content-type']).toContain('application/json');
+  expectJsonContentType(response);
 
   const body = await test.step(
     'Read registration response body',
     async () => (await response.json()) as RegisterResponseBody,
   );
 
-  expect(body.message).toEqual(expect.any(String));
-  expect(body.message.length).toBeGreaterThan(0);
+  expectRegisterResponseContract(body);
 });
 
 test('POST /login returns a JWT token for a registered user', { tag: '@auth' }, async ({ request }) => {
@@ -45,12 +49,12 @@ test('POST /login returns a JWT token for a registered user', { tag: '@auth' }, 
   );
 
   await expect(loginResponse).toBeOK();
-  expect(loginResponse.headers()['content-type']).toContain('application/json');
+  expectJsonContentType(loginResponse);
 
   const body = await test.step(
     'Read login response body',
     async () => (await loginResponse.json()) as LoginResponseBody,
   );
-  expect(body.token).toEqual(expect.any(String));
-  expect(body.token.split('.')).toHaveLength(3);
+
+  expectLoginResponseContract(body);
 });

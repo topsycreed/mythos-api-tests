@@ -5,6 +5,12 @@ import {
   mythologyCategories,
   notFoundMythologyEntityId,
 } from '../support/mythology-test-data';
+import {
+  expectApiErrorBodyContract,
+  expectJsonContentType,
+  expectMythologyEntityContract,
+  expectMythologyEntityListContract,
+} from '../support/contract-assertions';
 
 test(
   'GET /mythology returns successful JSON response',
@@ -13,14 +19,14 @@ test(
     const response = await test.step('Fetch mythology list', async () => getMythologyList(request));
 
     await expect(response).toBeOK();
-    expect(response.headers()['content-type']).toContain('application/json');
+    expectJsonContentType(response);
 
     const body = await test.step(
       'Read mythology list response',
       async () => (await response.json()) as MythologyEntity[],
     );
 
-    expect(Array.isArray(body)).toBe(true);
+    expectMythologyEntityListContract(body);
     expect(body.length).toBeGreaterThan(0);
   },
 );
@@ -35,13 +41,14 @@ for (const category of mythologyCategories) {
       );
 
       await expect(response).toBeOK();
+      expectJsonContentType(response);
 
       const body = await test.step(
         'Read filtered mythology list response',
         async () => (await response.json()) as MythologyEntity[],
       );
 
-      expect(Array.isArray(body)).toBe(true);
+      expectMythologyEntityListContract(body);
 
       for (const entity of body) {
         expect(entity.category).toBe(category);
@@ -63,6 +70,8 @@ test(
 
     await expect(ascResponse).toBeOK();
     await expect(descResponse).toBeOK();
+    expectJsonContentType(ascResponse);
+    expectJsonContentType(descResponse);
 
     const ascEntities = await test.step(
       'Read ascending mythology list response',
@@ -73,6 +82,8 @@ test(
       async () => (await descResponse.json()) as MythologyEntity[],
     );
 
+    expectMythologyEntityListContract(ascEntities);
+    expectMythologyEntityListContract(descEntities);
     expect(ascEntities.length).toBe(descEntities.length);
 
     const ascIds = ascEntities.map((entity) => entity.id).sort((left, right) => left - right);
@@ -104,12 +115,14 @@ test('GET /mythology/{id} returns an existing entity', { tag: '@read' }, async (
   );
 
   await expect(response).toBeOK();
+  expectJsonContentType(response);
 
   const entity = await test.step(
     'Read mythology entity response',
     async () => (await response.json()) as MythologyEntity,
   );
 
+  expectMythologyEntityContract(entity);
   expect(entity.id).toBe(existingEntity.id);
   expect(entity.name).toBe(existingEntity.name);
   expect(entity.category).toBe(existingEntity.category);
@@ -122,4 +135,12 @@ test('GET /mythology/{id} returns 404 for a non-existent entity', { tag: '@read'
   );
 
   expect(response.status()).toBe(404);
+  expectJsonContentType(response);
+
+  const body = await test.step(
+    'Read non-existent mythology entity response',
+    async () => (await response.json()) as unknown,
+  );
+
+  expectApiErrorBodyContract(body);
 });

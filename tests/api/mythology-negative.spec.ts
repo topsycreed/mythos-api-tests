@@ -15,6 +15,10 @@ import {
   invalidCreateMythologyCases,
   protectedSystemEntityIds,
 } from '../support/mythology-test-data';
+import {
+  expectApiErrorBodyContract,
+  expectJsonContentType,
+} from '../support/contract-assertions';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -50,6 +54,14 @@ for (const testCase of unauthorizedMutationCases) {
     );
 
     expect(response.status()).toBe(401);
+    expectJsonContentType(response);
+
+    const body = await test.step(
+      'Read unauthorized error response',
+      async () => (await response.json()) as unknown,
+    );
+
+    expectApiErrorBodyContract(body);
   });
 }
 
@@ -63,6 +75,14 @@ for (const testCase of invalidCreateMythologyCases) {
       );
 
       expect(response.status()).toBe(400);
+      expectJsonContentType(response);
+
+      const body = await test.step(
+        `Read invalid create response: ${testCase.name}`,
+        async () => (await response.json()) as unknown,
+      );
+
+      expectApiErrorBodyContract(body);
     },
   );
 }
@@ -85,6 +105,14 @@ test(
     );
 
     expect(response.status()).toBe(400);
+    expectJsonContentType(response);
+
+    const body = await test.step(
+      'Read incomplete put response',
+      async () => (await response.json()) as unknown,
+    );
+
+    expectApiErrorBodyContract(body);
   },
 );
 
@@ -101,6 +129,14 @@ test(
     );
 
     expect(response.status()).toBe(400);
+    expectJsonContentType(response);
+
+    const body = await test.step(
+      'Read empty patch response',
+      async () => (await response.json()) as unknown,
+    );
+
+    expectApiErrorBodyContract(body);
   },
 );
 
@@ -114,6 +150,14 @@ for (const systemEntityId of protectedSystemEntityIds) {
       );
 
       expect(response.status()).toBe(403);
+      expectJsonContentType(response);
+
+      const body = await test.step(
+        `Read protected entity replace response for ${systemEntityId}`,
+        async () => (await response.json()) as unknown,
+      );
+
+      expectApiErrorBodyContract(body);
     },
   );
 
@@ -126,6 +170,14 @@ for (const systemEntityId of protectedSystemEntityIds) {
       );
 
       expect(response.status()).toBe(403);
+      expectJsonContentType(response);
+
+      const body = await test.step(
+        `Read protected entity delete response for ${systemEntityId}`,
+        async () => (await response.json()) as unknown,
+      );
+
+      expectApiErrorBodyContract(body);
     },
   );
 }

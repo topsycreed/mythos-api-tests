@@ -12,6 +12,10 @@ import {
   createPatchMythologyPayload,
   createReplacementMythologyPayload,
 } from '../support/mythology-test-data';
+import {
+  expectJsonContentType,
+  expectMythologyEntityContract,
+} from '../support/contract-assertions';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -28,6 +32,7 @@ test('POST /mythology creates a new entity', { tag: '@crud' }, async ({
 
   await expect(response).toBeOK();
   expect(response.status()).toBe(201);
+  expectJsonContentType(response);
 
   const createdEntity = await test.step(
     'Read created entity response',
@@ -36,6 +41,7 @@ test('POST /mythology creates a new entity', { tag: '@crud' }, async ({
 
   mythologyEntityManager.track(createdEntity.id);
 
+  expectMythologyEntityContract(createdEntity);
   expect(createdEntity.id).toEqual(expect.any(Number));
   expect(createdEntity).toMatchObject(payload);
 });
@@ -61,9 +67,11 @@ test('PATCH /mythology/{id} updates selected fields', { tag: '@crud' }, async ({
     getMythologyById(request, createdEntity.id),
   );
   await expect(getResponse).toBeOK();
+  expectJsonContentType(getResponse);
 
   const updatedEntity = (await getResponse.json()) as MythologyEntity;
 
+  expectMythologyEntityContract(updatedEntity);
   expect(updatedEntity.id).toBe(createdEntity.id);
   expect(updatedEntity.name).toBe(createdEntity.name);
   expect(updatedEntity.category).toBe(createdEntity.category);
@@ -91,9 +99,11 @@ test('PUT /mythology/{id} replaces entity fields', { tag: '@crud' }, async ({
     getMythologyById(request, createdEntity.id),
   );
   await expect(getResponse).toBeOK();
+  expectJsonContentType(getResponse);
 
   const updatedEntity = (await getResponse.json()) as MythologyEntity;
 
+  expectMythologyEntityContract(updatedEntity);
   expect(updatedEntity.id).toBe(createdEntity.id);
   expect(updatedEntity).toMatchObject(replacementPayload);
 });

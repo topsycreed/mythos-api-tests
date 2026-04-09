@@ -7,12 +7,17 @@ export type MythologySortDirection = 'asc' | 'desc';
 export type MythologyEntity = {
   id: number;
   name: string;
+  category: string;
+  desc: string;
+  img?: string | null;
+};
+
+export type CreateMythologyPayload = {
+  name: string;
   category: MythologyCategory;
   desc: string;
   img?: string;
 };
-
-export type CreateMythologyPayload = Omit<MythologyEntity, 'id'>;
 export type UpdateMythologyPayload = CreateMythologyPayload;
 export type PatchMythologyPayload = Partial<CreateMythologyPayload>;
 

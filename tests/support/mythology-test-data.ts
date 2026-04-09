@@ -26,6 +26,9 @@ export const mythologySortDirections =
 export const protectedSystemEntityIds = [1, 31] as const;
 export const notFoundMythologyEntityId = 999_999_999;
 
+const toRequestCategory = (value: string): MythologyCategory =>
+  mythologyCategories.find((category) => category === value) ?? 'heroes';
+
 export const createMythologyPayload = (
   overrides: Partial<CreateMythologyPayload> = {},
 ): CreateMythologyPayload => ({
@@ -56,7 +59,7 @@ export const createIncompletePutPayload = (
   entity: MythologyEntity,
 ): Pick<CreateMythologyPayload, 'name' | 'category'> => ({
   name: entity.name,
-  category: entity.category,
+  category: toRequestCategory(entity.category),
 });
 
 export const invalidCreateMythologyCases: InvalidCreateMythologyCase[] = [

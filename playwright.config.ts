@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import { defineConfig } from '@playwright/test';
 
-dotenv.config({ override: true });
+dotenv.config({ override: true, quiet: true });
 
 const isCI = !!process.env.CI;
 

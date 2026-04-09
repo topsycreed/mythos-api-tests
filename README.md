@@ -525,7 +525,7 @@ What each part is for:
 
 1. `tests/api/` contains API smoke, regression, and scenario tests
 2. `tests/fixtures/` contains shared Playwright fixtures for auth and resource lifecycle
-3. `tests/support/` contains shared test data and helper inputs
+3. `tests/support/` contains shared test data, contract assertions, and helper inputs
 4. `src/api/` contains reusable API request helpers
 5. `src/config/` contains environment-variable helpers and shared configuration code
 6. `playwright.config.ts` contains the global Playwright configuration
@@ -563,6 +563,7 @@ What they cover:
 3. `GET /mythology?sort=asc|desc` returns correctly sorted names
 4. `GET /mythology/{id}` returns an existing entity
 5. `GET /mythology/{id}` returns `404` for a non-existent entity
+6. Successful and error responses follow the expected JSON contract
 
 ## Step 17. Auth Test Starter
 
@@ -572,7 +573,8 @@ What they cover:
 
 1. `POST /register` creates a new user
 2. `POST /login` returns a JWT token for that user
-3. The username is generated uniquely from the env prefix on every run to avoid duplicate-registration failures
+3. The username is generated uniquely from the internal test prefix on every run to avoid duplicate-registration failures
+4. Response bodies follow the expected auth contract
 
 ## Step 18. Mythology CRUD Test Starter
 
@@ -584,6 +586,7 @@ What they cover:
 2. `PATCH /mythology/{id}` updates selected fields
 3. `PUT /mythology/{id}` replaces entity fields
 4. `DELETE /mythology/{id}` removes the created entity
+5. Returned entities follow the expected JSON contract
 
 These tests:
 
@@ -604,6 +607,7 @@ What they cover:
 1. `401 Unauthorized` for write operations without JWT
 2. `400 Bad Request` for invalid create, patch, and put payloads
 3. `403 Forbidden` for protected system entities like ID `1`
+4. Error responses follow the expected JSON contract
 
 Why they matter:
 
@@ -631,4 +635,5 @@ This setup gives you:
 5. Tagged suites for focused local and CI runs
 6. Clear HTML report and trace artifact handling
 7. Shared fixtures for auth and temporary test data cleanup
-8. Easy test execution from both VS Code and the terminal
+8. Contract-level assertions for success and error responses
+9. Easy test execution from both VS Code and the terminal
