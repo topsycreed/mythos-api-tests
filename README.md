@@ -733,9 +733,16 @@ Run only the mock examples:
 npm run test:mock
 ```
 
+Because the mock example uses `page.route(...)`, it needs a Playwright browser installed locally. If this is your first local browser-based Playwright run on the machine, install Chromium once:
+
+```bash
+npx playwright install chromium
+```
+
 If you are using PowerShell on Windows and `npm` is blocked by execution policy, use:
 
 ```powershell
+npx.cmd playwright install chromium
 npm.cmd run test:mock
 ```
 
