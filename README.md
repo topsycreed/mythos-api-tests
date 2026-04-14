@@ -684,6 +684,12 @@ If you want to remove old Allure artifacts before a new run:
 npm run allure:clean
 ```
 
+If you want to remove them directly from PowerShell on Windows, use:
+
+```powershell
+Remove-Item -Recurse -Force .\allure-results, .\allure-report
+```
+
 Recommended local flow from the project root:
 
 ```bash
@@ -707,6 +713,13 @@ Docker usage:
 1. `docker compose run --rm tests npm run test:allure` runs the tests and writes raw Allure files into the mounted `allure-results/` folder
 2. `docker compose run --rm tests npm run allure:generate` converts those files into the mounted `allure-report/` folder
 3. The generated report can then be opened locally from `allure-report/index.html`
+4. Allure does not need a separate Docker browser viewer here because the generated report is a static site mounted back to the host
+
+After Docker generation, open the report locally with:
+
+```powershell
+npm.cmd run allure:open
+```
 
 Or use the npm wrapper for Docker-based report generation:
 
