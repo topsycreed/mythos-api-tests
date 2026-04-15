@@ -1,5 +1,4 @@
 import type { APIRequestContext, APIResponse } from "@playwright/test";
-
 export type MythologyCategory = "gods" | "heroes" | "creatures";
 export type MythologyListCategory = MythologyCategory | "all";
 export type MythologySortDirection = "asc" | "desc";
