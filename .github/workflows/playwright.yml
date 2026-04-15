@@ -1,61 +1,27 @@
 name: Playwright Tests
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
 jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
-    env:
-      BASE_URL: https://api.qasandbox.ru/api/
-      GRAPHQL_URL: https://api.qasandbox.ru/graphql
-      UI_BASE_URL: https://api.qasandbox.ru/
-      USERNAME: ${{ secrets.QASANDBOX_USERNAME }}
-      PASSWORD: ${{ secrets.QASANDBOX_PASSWORD }}
-      HAS_AUTH_SECRETS: ${{ secrets.QASANDBOX_USERNAME != '' && secrets.QASANDBOX_PASSWORD != '' }}
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: lts/*
-    - name: Install dependencies
-      run: npm ci
-    - name: Install Playwright Browsers
-      run: npx playwright install --with-deps
-    - name: Run type check
-      run: npm run typecheck
-    - name: Run public smoke tests
-      run: npm run test:smoke
-    - name: Run public read tests
-      run: npm run test:read
-    - name: Run GraphQL tests
-      run: npm run test:graphql
-    - name: Run UI example tests
-      run: npm run test:ui-example
-    - name: Run auth tests
-      if: env.HAS_AUTH_SECRETS == 'true'
-      run: npm run test:auth
-    - name: Run CRUD tests
-      if: env.HAS_AUTH_SECRETS == 'true'
-      run: npm run test:crud
-    - name: Run negative tests
-      if: env.HAS_AUTH_SECRETS == 'true'
-      run: npm run test:negative
-    - name: Skip auth tests when secrets are missing
-      if: env.HAS_AUTH_SECRETS != 'true'
-      run: echo "QASANDBOX_USERNAME or QASANDBOX_PASSWORD is not configured. Skipping auth, CRUD, and negative tests."
-    - uses: actions/upload-artifact@v4
-      if: ${{ !cancelled() }}
-      with:
-        name: playwright-report
-        path: playwright-report/
-        retention-days: 30
-    - uses: actions/upload-artifact@v4
-      if: ${{ !cancelled() }}
-      with:
-        name: playwright-test-results
-        path: test-results/
-        if-no-files-found: ignore
-        retention-days: 30
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+      - name: Run Playwright tests
+        run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30

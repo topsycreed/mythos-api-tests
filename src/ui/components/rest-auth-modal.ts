@@ -1,6 +1,6 @@
-import type { Locator, Page } from '@playwright/test';
+import type { Locator, Page } from "@playwright/test";
 
-import type { AuthCredentials } from '../../api/auth';
+import type { AuthCredentials } from "../../api/auth";
 
 export class RestAuthModal {
   readonly page: Page;
@@ -15,10 +15,14 @@ export class RestAuthModal {
 
   constructor(page: Page) {
     this.page = page;
-    this.usernameInput = page.locator('#auth-user');
-    this.passwordInput = page.locator('#auth-pass');
-    this.loginButton = page.locator('#modal-auth').getByRole('button', { name: 'Войти' });
-    this.registerButton = page.locator('#modal-auth').getByRole('button', { name: 'Регистрация' });
+    this.usernameInput = page.locator("#auth-user");
+    this.passwordInput = page.locator("#auth-pass");
+    this.loginButton = page
+      .locator("#modal-auth")
+      .getByRole("button", { name: "Войти" });
+    this.registerButton = page
+      .locator("#modal-auth")
+      .getByRole("button", { name: "Регистрация" });
   }
 
   async fillCredentials(credentials: AuthCredentials): Promise<void> {

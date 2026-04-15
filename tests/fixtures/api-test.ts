@@ -1,22 +1,22 @@
-import { writeFile } from 'node:fs/promises';
-import * as allure from 'allure-js-commons';
-import type { StepContext } from 'allure-js-commons';
+import { writeFile } from "node:fs/promises";
+import * as allure from "allure-js-commons";
+import type { StepContext } from "allure-js-commons";
 import {
   expect,
   request as playwrightRequest,
   test as base,
   type APIResponse,
-} from '@playwright/test';
+} from "@playwright/test";
 
-import { createAuthSession, type AuthSession } from '../../src/api/auth';
-import { env } from '../../src/config/env';
+import { createAuthSession, type AuthSession } from "../../src/api/auth";
+import { env } from "../../src/config/env";
 import {
   createMythologyEntity,
   deleteMythologyEntity,
   type CreateMythologyPayload,
   type MythologyEntity,
-} from '../../src/api/mythology';
-import { createMythologyPayload } from '../support/mythology-test-data';
+} from "../../src/api/mythology";
+import { createMythologyPayload } from "../support/mythology-test-data";
 
 type ApiRequestDebug = {
   method: string;
@@ -31,7 +31,9 @@ type ApiCallMetadata = {
 };
 
 type MythologyEntityManager = {
-  create: (overrides?: Partial<CreateMythologyPayload>) => Promise<MythologyEntity>;
+  create: (
+    overrides?: Partial<CreateMythologyPayload>,
+  ) => Promise<MythologyEntity>;
   track: (id: number) => void;
 };
 
@@ -68,11 +70,17 @@ type ApiExchange = {
   finishedAt: string;
 };
 
-const sensitiveKeys = ['authorization', 'cookie', 'password', 'set-cookie', 'token'];
+const sensitiveKeys = [
+  "authorization",
+  "cookie",
+  "password",
+  "set-cookie",
+  "token",
+];
 
 const requireBaseUrl = (): string => {
   if (!env.baseUrl) {
-    throw new Error('Missing required environment variable: BASE_URL');
+    throw new Error("Missing required environment variable: BASE_URL");
   }
 
   return env.baseUrl;
@@ -86,11 +94,13 @@ const redactSensitive = (value: unknown): unknown => {
     return value.map((item) => redactSensitive(item));
   }
 
-  if (value && typeof value === 'object') {
-    const entries = Object.entries(value as Record<string, unknown>).map(([key, itemValue]) => [
-      key,
-      isSensitiveKey(key) ? '***' : redactSensitive(itemValue),
-    ]);
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>).map(
+      ([key, itemValue]) => [
+        key,
+        isSensitiveKey(key) ? "***" : redactSensitive(itemValue),
+      ],
+    );
 
     return Object.fromEntries(entries);
   }
@@ -106,11 +116,16 @@ const redactHeaders = (
   }
 
   return Object.fromEntries(
-    Object.entries(headers).map(([key, value]) => [key, isSensitiveKey(key) ? '***' : value]),
+    Object.entries(headers).map(([key, value]) => [
+      key,
+      isSensitiveKey(key) ? "***" : value,
+    ]),
   );
 };
 
-const serializeError = (error: unknown): { message: string; stack?: string } => {
+const serializeError = (
+  error: unknown,
+): { message: string; stack?: string } => {
   if (error instanceof Error) {
     return {
       message: error.message,
@@ -124,7 +139,7 @@ const serializeError = (error: unknown): { message: string; stack?: string } => 
 };
 
 const stringifyAttachment = (value: unknown): string =>
-  typeof value === 'string' ? value : JSON.stringify(value, null, 2);
+  typeof value === "string" ? value : JSON.stringify(value, null, 2);
 
 const readResponseBody = async (response: APIResponse): Promise<unknown> => {
   const text = await response.text();
@@ -133,9 +148,9 @@ const readResponseBody = async (response: APIResponse): Promise<unknown> => {
     return null;
   }
 
-  const contentType = response.headers()['content-type'] ?? '';
+  const contentType = response.headers()["content-type"] ?? "";
 
-  if (contentType.includes('application/json')) {
+  if (contentType.includes("application/json")) {
     try {
       return redactSensitive(JSON.parse(text));
     } catch {
@@ -166,7 +181,7 @@ export const test = base.extend<ApiFixtures, ApiWorkerFixtures>({
         await authRequest.dispose();
       }
     },
-    { scope: 'worker' },
+    { scope: "worker" },
   ],
 
   authToken: async ({ authSession }, use) => {
@@ -180,68 +195,87 @@ export const test = base.extend<ApiFixtures, ApiWorkerFixtures>({
       const startedAt = new Date().toISOString();
       const requestSnapshot = buildRequestSnapshot(metadata.request);
 
-      return allure.step(`API: ${metadata.label}`, async (stepContext: StepContext) => {
-        await stepContext.parameter('method', metadata.request.method);
-        await stepContext.parameter('url', metadata.request.url);
-        await allure.attachment('request', stringifyAttachment(requestSnapshot), 'application/json');
-
-        try {
-          const response = await action();
-          const responseSnapshot = {
-            body: await readResponseBody(response),
-            headers: redactHeaders(response.headers()) ?? {},
-            ok: response.ok(),
-            status: response.status(),
-            url: response.url(),
-          };
-
-          apiExchanges.push({
-            label: metadata.label,
-            request: requestSnapshot,
-            response: responseSnapshot,
-            finishedAt: new Date().toISOString(),
-            startedAt,
-          });
-
-          await stepContext.parameter('status', String(responseSnapshot.status));
+      return allure.step(
+        `API: ${metadata.label}`,
+        async (stepContext: StepContext) => {
+          await stepContext.parameter("method", metadata.request.method);
+          await stepContext.parameter("url", metadata.request.url);
           await allure.attachment(
-            'response',
-            stringifyAttachment(responseSnapshot),
-            'application/json',
+            "request",
+            stringifyAttachment(requestSnapshot),
+            "application/json",
           );
 
-          return response;
-        } catch (error) {
-          const errorSnapshot = serializeError(error);
+          try {
+            const response = await action();
+            const responseSnapshot = {
+              body: await readResponseBody(response),
+              headers: redactHeaders(response.headers()) ?? {},
+              ok: response.ok(),
+              status: response.status(),
+              url: response.url(),
+            };
 
-          apiExchanges.push({
-            label: metadata.label,
-            request: requestSnapshot,
-            error: errorSnapshot,
-            finishedAt: new Date().toISOString(),
-            startedAt,
-          });
+            apiExchanges.push({
+              label: metadata.label,
+              request: requestSnapshot,
+              response: responseSnapshot,
+              finishedAt: new Date().toISOString(),
+              startedAt,
+            });
 
-          await allure.attachment('error', stringifyAttachment(errorSnapshot), 'application/json');
+            await stepContext.parameter(
+              "status",
+              String(responseSnapshot.status),
+            );
+            await allure.attachment(
+              "response",
+              stringifyAttachment(responseSnapshot),
+              "application/json",
+            );
 
-          throw error;
-        }
-      });
+            return response;
+          } catch (error) {
+            const errorSnapshot = serializeError(error);
+
+            apiExchanges.push({
+              label: metadata.label,
+              request: requestSnapshot,
+              error: errorSnapshot,
+              finishedAt: new Date().toISOString(),
+              startedAt,
+            });
+
+            await allure.attachment(
+              "error",
+              stringifyAttachment(errorSnapshot),
+              "application/json",
+            );
+
+            throw error;
+          }
+        },
+      );
     };
 
     await use(debugApiCall);
 
     const shouldAttachDebugLog =
       apiExchanges.length > 0 &&
-      (testInfo.errors.length > 0 || testInfo.status !== testInfo.expectedStatus);
+      (testInfo.errors.length > 0 ||
+        testInfo.status !== testInfo.expectedStatus);
 
     if (shouldAttachDebugLog) {
-      const debugLogPath = testInfo.outputPath('api-debug-log.json');
+      const debugLogPath = testInfo.outputPath("api-debug-log.json");
 
-      await writeFile(debugLogPath, JSON.stringify(apiExchanges, null, 2), 'utf8');
-      await testInfo.attach('api-debug-log', {
+      await writeFile(
+        debugLogPath,
+        JSON.stringify(apiExchanges, null, 2),
+        "utf8",
+      );
+      await testInfo.attach("api-debug-log", {
         path: debugLogPath,
-        contentType: 'application/json',
+        contentType: "application/json",
       });
     }
   },
@@ -254,10 +288,10 @@ export const test = base.extend<ApiFixtures, ApiWorkerFixtures>({
         const payload = createMythologyPayload(overrides);
         const response = await debugApiCall(
           {
-            label: 'Create temporary mythology entity',
+            label: "Create temporary mythology entity",
             request: {
-              method: 'POST',
-              url: 'mythology',
+              method: "POST",
+              url: "mythology",
               headers: {
                 Authorization: `Bearer ${authToken}`,
               },
@@ -291,7 +325,7 @@ export const test = base.extend<ApiFixtures, ApiWorkerFixtures>({
         {
           label: `Clean up mythology entity ${entityId}`,
           request: {
-            method: 'DELETE',
+            method: "DELETE",
             url: `mythology/${entityId}`,
             headers: {
               Authorization: `Bearer ${authToken}`,

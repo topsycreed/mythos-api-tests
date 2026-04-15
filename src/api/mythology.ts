@@ -1,8 +1,8 @@
-import type { APIRequestContext, APIResponse } from '@playwright/test';
+import type { APIRequestContext, APIResponse } from "@playwright/test";
 
-export type MythologyCategory = 'gods' | 'heroes' | 'creatures';
-export type MythologyListCategory = MythologyCategory | 'all';
-export type MythologySortDirection = 'asc' | 'desc';
+export type MythologyCategory = "gods" | "heroes" | "creatures";
+export type MythologyListCategory = MythologyCategory | "all";
+export type MythologySortDirection = "asc" | "desc";
 
 export type MythologyEntity = {
   id: number;
@@ -32,7 +32,7 @@ export const getMythologyList = (
     sort?: MythologySortDirection;
   },
 ): Promise<APIResponse> =>
-  request.get('mythology', {
+  request.get("mythology", {
     params: query,
   });
 
@@ -45,7 +45,7 @@ export const createMythologyEntityWithoutAuth = (
   request: APIRequestContext,
   payload: CreateMythologyPayload,
 ): Promise<APIResponse> =>
-  request.post('mythology', {
+  request.post("mythology", {
     data: payload,
   });
 
@@ -54,7 +54,7 @@ export const createMythologyEntity = (
   token: string,
   payload: CreateMythologyPayload,
 ): Promise<APIResponse> =>
-  request.post('mythology', {
+  request.post("mythology", {
     data: payload,
     headers: createAuthHeaders(token),
   });

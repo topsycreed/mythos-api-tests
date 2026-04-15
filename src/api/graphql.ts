@@ -1,8 +1,8 @@
-import type { APIRequestContext, APIResponse } from '@playwright/test';
+import type { APIRequestContext, APIResponse } from "@playwright/test";
 
-import { env } from '../config/env';
+import { env } from "../config/env";
 
-export const defaultGraphqlUrl = 'https://api.qasandbox.ru/graphql';
+export const defaultGraphqlUrl = "https://api.qasandbox.ru/graphql";
 
 export type GraphqlVariables = Record<string, unknown>;
 
@@ -17,7 +17,9 @@ export type GraphqlResponseBody<TData> = {
   errors?: GraphqlError[];
 };
 
-export type GraphqlRequestOptions<TVariables extends GraphqlVariables | undefined> = {
+export type GraphqlRequestOptions<
+  TVariables extends GraphqlVariables | undefined,
+> = {
   operationName: string;
   query: string;
   token?: string;
@@ -52,7 +54,7 @@ export type SoulInput = {
 
 export type SoulMutationPayload = SoulDetails;
 
-const SCRIBE_USERNAME_PREFIX = 'pw_scribe';
+const SCRIBE_USERNAME_PREFIX = "pw_scribe";
 
 export const getGraphqlUrl = (): string => env.graphqlUrl ?? defaultGraphqlUrl;
 
@@ -74,7 +76,10 @@ const createGraphqlBody = <TVariables extends GraphqlVariables | undefined>({
   variables: variables ?? null,
 });
 
-export const postGraphql = <TData, TVariables extends GraphqlVariables | undefined>(
+export const postGraphql = <
+  TData,
+  TVariables extends GraphqlVariables | undefined,
+>(
   request: APIRequestContext,
   options: GraphqlRequestOptions<TVariables>,
 ): Promise<APIResponse> =>
@@ -87,19 +92,22 @@ const createUsernameSuffix = (): string => {
   const timestamp = Date.now().toString();
   const randomPart = Math.floor(Math.random() * 1_000_000)
     .toString()
-    .padStart(6, '0');
+    .padStart(6, "0");
 
   return `${timestamp}_${randomPart}`;
 };
 
 export const createUniqueScribeCredentials = (): GraphqlScribeCredentials => ({
   username: `${SCRIBE_USERNAME_PREFIX}_${createUsernameSuffix()}`,
-  password: 'playwright123',
+  password: "playwright123",
 });
 
-export const getAllSouls = (request: APIRequestContext, limit: number): Promise<APIResponse> =>
+export const getAllSouls = (
+  request: APIRequestContext,
+  limit: number,
+): Promise<APIResponse> =>
   postGraphql<{ allSouls: SoulSummary[] }, { limit: number }>(request, {
-    operationName: 'AllSouls',
+    operationName: "AllSouls",
     query: `
       query AllSouls($limit: Int!) {
         allSouls(limit: $limit) {
@@ -112,9 +120,12 @@ export const getAllSouls = (request: APIRequestContext, limit: number): Promise<
     variables: { limit },
   });
 
-export const getSoul = (request: APIRequestContext, id: string): Promise<APIResponse> =>
+export const getSoul = (
+  request: APIRequestContext,
+  id: string,
+): Promise<APIResponse> =>
   postGraphql<{ getSoul: SoulDetails }, { id: string }>(request, {
-    operationName: 'GetSoul',
+    operationName: "GetSoul",
     query: `
       query GetSoul($id: ID!) {
         getSoul(id: $id) {
@@ -134,7 +145,7 @@ export const registerScribe = (
   credentials: GraphqlScribeCredentials,
 ): Promise<APIResponse> =>
   postGraphql<{ registerScribe: string }, GraphqlScribeCredentials>(request, {
-    operationName: 'RegisterScribe',
+    operationName: "RegisterScribe",
     query: `
       mutation RegisterScribe($username: String!, $password: String!) {
         registerScribe(username: $username, password: $password)
@@ -147,9 +158,11 @@ export const loginScribe = (
   request: APIRequestContext,
   credentials: GraphqlScribeCredentials,
 ): Promise<APIResponse> =>
-  postGraphql<{ loginScribe: GraphqlAuthPayload }, GraphqlScribeCredentials>(request, {
-    operationName: 'LoginScribe',
-    query: `
+  postGraphql<{ loginScribe: GraphqlAuthPayload }, GraphqlScribeCredentials>(
+    request,
+    {
+      operationName: "LoginScribe",
+      query: `
       mutation LoginScribe($username: String!, $password: String!) {
         loginScribe(username: $username, password: $password) {
           token
@@ -157,12 +170,16 @@ export const loginScribe = (
         }
       }
     `,
-    variables: credentials,
-  });
+      variables: credentials,
+    },
+  );
 
-export const getCurrentScribe = (request: APIRequestContext, token: string): Promise<APIResponse> =>
+export const getCurrentScribe = (
+  request: APIRequestContext,
+  token: string,
+): Promise<APIResponse> =>
   postGraphql<{ currentScribe: string }, undefined>(request, {
-    operationName: 'CurrentScribe',
+    operationName: "CurrentScribe",
     query: `
       query CurrentScribe {
         currentScribe
@@ -176,9 +193,11 @@ export const createSoul = (
   token: string,
   input: SoulInput,
 ): Promise<APIResponse> =>
-  postGraphql<{ createSoul: SoulMutationPayload }, { input: SoulInput }>(request, {
-    operationName: 'CreateSoul',
-    query: `
+  postGraphql<{ createSoul: SoulMutationPayload }, { input: SoulInput }>(
+    request,
+    {
+      operationName: "CreateSoul",
+      query: `
       mutation CreateSoul($input: SoulInput!) {
         createSoul(input: $input) {
           id
@@ -189,9 +208,10 @@ export const createSoul = (
         }
       }
     `,
-    token,
-    variables: { input },
-  });
+      token,
+      variables: { input },
+    },
+  );
 
 export const patchSoulDeeds = (
   request: APIRequestContext,
@@ -199,8 +219,11 @@ export const patchSoulDeeds = (
   id: string,
   deed: string,
 ): Promise<APIResponse> =>
-  postGraphql<{ patchSoulDeeds: SoulMutationPayload }, { deed: string; id: string }>(request, {
-    operationName: 'PatchSoulDeeds',
+  postGraphql<
+    { patchSoulDeeds: SoulMutationPayload },
+    { deed: string; id: string }
+  >(request, {
+    operationName: "PatchSoulDeeds",
     query: `
       mutation PatchSoulDeeds($id: ID!, $deed: String!) {
         patchSoulDeeds(id: $id, deed: $deed) {
@@ -222,7 +245,7 @@ export const banishSoul = (
   id: string,
 ): Promise<APIResponse> =>
   postGraphql<{ banishSoul: string }, { id: string }>(request, {
-    operationName: 'BanishSoul',
+    operationName: "BanishSoul",
     query: `
       mutation BanishSoul($id: ID!) {
         banishSoul(id: $id)

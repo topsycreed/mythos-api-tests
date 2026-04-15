@@ -1,0 +1,192 @@
+lockfileVersion: "9.0"
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+  .:
+    dependencies:
+      dotenv:
+        specifier: ^17.4.1
+        version: 17.4.2
+    devDependencies:
+      "@playwright/test":
+        specifier: ^1.59.1
+        version: 1.59.1
+      "@types/node":
+        specifier: ^25.5.2
+        version: 25.6.0
+      allure-commandline:
+        specifier: ^2.38.1
+        version: 2.38.1
+      allure-js-commons:
+        specifier: ^3.7.1
+        version: 3.7.1(allure-playwright@3.7.1(@playwright/test@1.59.1))
+      allure-playwright:
+        specifier: ^3.7.1
+        version: 3.7.1(@playwright/test@1.59.1)
+      typescript:
+        specifier: ^6.0.2
+        version: 6.0.2
+
+packages:
+  "@playwright/test@1.59.1":
+    resolution:
+      {
+        integrity: sha512-PG6q63nQg5c9rIi4/Z5lR5IVF7yU5MqmKaPOe0HSc0O2cX1fPi96sUQu5j7eo4gKCkB2AnNGoWt7y4/Xx3Kcqg==,
+      }
+    engines: { node: ">=18" }
+    hasBin: true
+
+  "@types/node@25.6.0":
+    resolution:
+      {
+        integrity: sha512-+qIYRKdNYJwY3vRCZMdJbPLJAtGjQBudzZzdzwQYkEPQd+PJGixUL5QfvCLDaULoLv+RhT3LDkwEfKaAkgSmNQ==,
+      }
+
+  allure-commandline@2.38.1:
+    resolution:
+      {
+        integrity: sha512-qkoEz8/Y+K6XRlkJFmPEsT4bJFa2nHmYMkp6aEg6HaM4uewpJRI0jJsQhVWl8xZ6k6VtVr3vWnsAMPL5LPthvA==,
+      }
+    hasBin: true
+
+  allure-js-commons@3.7.1:
+    resolution:
+      {
+        integrity: sha512-S8tFymEzgWpp3ITGFu01z2+6KYdiNZC3sX8FbJaNgLoLWBHDBNQ0lq4lTQgkVjV6IN4TIUrnYfa2YuytWpv8WA==,
+      }
+    peerDependencies:
+      allure-playwright: 3.7.1
+    peerDependenciesMeta:
+      allure-playwright:
+        optional: true
+
+  allure-playwright@3.7.1:
+    resolution:
+      {
+        integrity: sha512-uEuVz/VJWWEWvMV9iwsxSXJ3Y1RejNG8CUM13HyvMiQDfLI8xHCx7JWNSfGrBVIWVfo6+jsySpZ4Clu1EKXgYw==,
+      }
+    peerDependencies:
+      "@playwright/test": ">=1.53.0"
+
+  charenc@0.0.2:
+    resolution:
+      {
+        integrity: sha512-yrLQ/yVUFXkzg7EDQsPieE/53+0RlaWTs+wBrvW36cyilJ2SaDWfl4Yj7MtLTXleV9uEKefbAGUPv2/iWSooRA==,
+      }
+
+  crypt@0.0.2:
+    resolution:
+      {
+        integrity: sha512-mCxBlsHFYh9C+HVpiEacem8FEBnMXgU9gy4zmNC+SXAZNB/1idgp/aulFJ4FgCi7GPEVbfyng092GqL2k2rmow==,
+      }
+
+  dotenv@17.4.2:
+    resolution:
+      {
+        integrity: sha512-nI4U3TottKAcAD9LLud4Cb7b2QztQMUEfHbvhTH09bqXTxnSie8WnjPALV/WMCrJZ6UV/qHJ6L03OqO3LcdYZw==,
+      }
+    engines: { node: ">=12" }
+
+  fsevents@2.3.2:
+    resolution:
+      {
+        integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==,
+      }
+    engines: { node: ^8.16.0 || ^10.6.0 || >=11.0.0 }
+    os: [darwin]
+
+  is-buffer@1.1.6:
+    resolution:
+      {
+        integrity: sha512-NcdALwpXkTm5Zvvbk7owOUSvVvBKDgKP5/ewfXEznmQFfs4ZRmanOeKBTjRVjka3QFoN6XJ+9F3USqfHqTaU5w==,
+      }
+
+  md5@2.3.0:
+    resolution:
+      {
+        integrity: sha512-T1GITYmFaKuO91vxyoQMFETst+O71VUPEU3ze5GNzDm0OWdP8v1ziTaAEPUr/3kLsY3Sftgz242A1SetQiDL7g==,
+      }
+
+  playwright-core@1.59.1:
+    resolution:
+      {
+        integrity: sha512-HBV/RJg81z5BiiZ9yPzIiClYV/QMsDCKUyogwH9p3MCP6IYjUFu/MActgYAvK0oWyV9NlwM3GLBjADyWgydVyg==,
+      }
+    engines: { node: ">=18" }
+    hasBin: true
+
+  playwright@1.59.1:
+    resolution:
+      {
+        integrity: sha512-C8oWjPR3F81yljW9o5OxcWzfh6avkVwDD2VYdwIGqTkl+OGFISgypqzfu7dOe4QNLL2aqcWBmI3PMtLIK233lw==,
+      }
+    engines: { node: ">=18" }
+    hasBin: true
+
+  typescript@6.0.2:
+    resolution:
+      {
+        integrity: sha512-bGdAIrZ0wiGDo5l8c++HWtbaNCWTS4UTv7RaTH/ThVIgjkveJt83m74bBHMJkuCbslY8ixgLBVZJIOiQlQTjfQ==,
+      }
+    engines: { node: ">=14.17" }
+    hasBin: true
+
+  undici-types@7.19.2:
+    resolution:
+      {
+        integrity: sha512-qYVnV5OEm2AW8cJMCpdV20CDyaN3g0AjDlOGf1OW4iaDEx8MwdtChUp4zu4H0VP3nDRF/8RKWH+IPp9uW0YGZg==,
+      }
+
+snapshots:
+  "@playwright/test@1.59.1":
+    dependencies:
+      playwright: 1.59.1
+
+  "@types/node@25.6.0":
+    dependencies:
+      undici-types: 7.19.2
+
+  allure-commandline@2.38.1: {}
+
+  allure-js-commons@3.7.1(allure-playwright@3.7.1(@playwright/test@1.59.1)):
+    dependencies:
+      md5: 2.3.0
+    optionalDependencies:
+      allure-playwright: 3.7.1(@playwright/test@1.59.1)
+
+  allure-playwright@3.7.1(@playwright/test@1.59.1):
+    dependencies:
+      "@playwright/test": 1.59.1
+      allure-js-commons: 3.7.1(allure-playwright@3.7.1(@playwright/test@1.59.1))
+
+  charenc@0.0.2: {}
+
+  crypt@0.0.2: {}
+
+  dotenv@17.4.2: {}
+
+  fsevents@2.3.2:
+    optional: true
+
+  is-buffer@1.1.6: {}
+
+  md5@2.3.0:
+    dependencies:
+      charenc: 0.0.2
+      crypt: 0.0.2
+      is-buffer: 1.1.6
+
+  playwright-core@1.59.1: {}
+
+  playwright@1.59.1:
+    dependencies:
+      playwright-core: 1.59.1
+    optionalDependencies:
+      fsevents: 2.3.2
+
+  typescript@6.0.2: {}
+
+  undici-types@7.19.2: {}

@@ -1,11 +1,11 @@
-import type { Locator, Page } from '@playwright/test';
-import { expect } from '@playwright/test';
+import type { Locator, Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 
-import type { AuthCredentials } from '../../api/auth';
-import { env } from '../../config/env';
-import { RestAuthModal } from '../components/rest-auth-modal';
+import type { AuthCredentials } from "../../api/auth";
+import { env } from "../../config/env";
+import { RestAuthModal } from "../components/rest-auth-modal";
 
-export const defaultUiBaseUrl = 'https://api.qasandbox.ru/';
+export const defaultUiBaseUrl = "https://api.qasandbox.ru/";
 
 export const getUiBaseUrl = (): string => env.uiBaseUrl ?? defaultUiBaseUrl;
 
@@ -29,16 +29,20 @@ export class MythosHomePage {
   constructor(page: Page) {
     this.page = page;
     this.authModal = new RestAuthModal(page);
-    this.restTabButton = page.getByRole('button', { name: /REST API/i });
-    this.sandboxTabButton = page.getByRole('button', { name: /Песочница/i });
-    this.loginButton = page.locator('main').getByRole('button', { name: 'Войти' });
-    this.logoutButton = page.getByRole('button', { name: 'Выйти' });
-    this.createEntityButton = page.getByRole('button', { name: 'Призвать существо' });
-    this.createEntityModal = page.locator('#modal-create');
+    this.restTabButton = page.getByRole("button", { name: /REST API/i });
+    this.sandboxTabButton = page.getByRole("button", { name: /Песочница/i });
+    this.loginButton = page
+      .locator("main")
+      .getByRole("button", { name: "Войти" });
+    this.logoutButton = page.getByRole("button", { name: "Выйти" });
+    this.createEntityButton = page.getByRole("button", {
+      name: "Призвать существо",
+    });
+    this.createEntityModal = page.locator("#modal-create");
   }
 
   async goto(): Promise<void> {
-    await this.page.goto(getUiBaseUrl(), { waitUntil: 'domcontentloaded' });
+    await this.page.goto(getUiBaseUrl(), { waitUntil: "domcontentloaded" });
     await expect(this.restTabButton).toBeVisible();
     await expect(this.sandboxTabButton).toBeVisible();
   }
@@ -70,13 +74,12 @@ export class MythosHomePage {
   }
 
   async expectRestTokenStored(): Promise<void> {
-    const restToken = await this.page.evaluate(
-      () =>
-        (
-          globalThis as {
-            localStorage: { getItem: (key: string) => string | null };
-          }
-        ).localStorage.getItem('mythos_rest_token'),
+    const restToken = await this.page.evaluate(() =>
+      (
+        globalThis as {
+          localStorage: { getItem: (key: string) => string | null };
+        }
+      ).localStorage.getItem("mythos_rest_token"),
     );
     expect(restToken).toBeTruthy();
   }

@@ -1,10 +1,10 @@
-import { expect, type APIResponse } from '@playwright/test';
+import { expect, type APIResponse } from "@playwright/test";
 
 import {
   type LoginResponseBody,
   type RegisterResponseBody,
-} from '../../src/api/auth';
-import { type MythologyEntity } from '../../src/api/mythology';
+} from "../../src/api/auth";
+import { type MythologyEntity } from "../../src/api/mythology";
 
 type ApiErrorBody = {
   error?: string;
@@ -18,7 +18,7 @@ function expectNonEmptyString(value: unknown): asserts value is string {
 }
 
 export function expectJsonContentType(response: APIResponse): void {
-  expect(response.headers()['content-type']).toContain('application/json');
+  expect(response.headers()["content-type"]).toContain("application/json");
 }
 
 export function expectMythologyEntityContract(
@@ -64,7 +64,7 @@ export function expectLoginResponseContract(
 
   const candidate = body as LoginResponseBody;
   expectNonEmptyString(candidate.token);
-  expect(candidate.token.split('.')).toHaveLength(3);
+  expect(candidate.token.split(".")).toHaveLength(3);
 }
 
 export function expectApiErrorBodyContract(
@@ -73,8 +73,10 @@ export function expectApiErrorBodyContract(
   expect(body).toEqual(expect.any(Object));
 
   const candidate = body as ApiErrorBody;
-  const hasError = typeof candidate.error === 'string' && candidate.error.length > 0;
-  const hasMessage = typeof candidate.message === 'string' && candidate.message.length > 0;
+  const hasError =
+    typeof candidate.error === "string" && candidate.error.length > 0;
+  const hasMessage =
+    typeof candidate.message === "string" && candidate.message.length > 0;
 
   expect(hasError || hasMessage).toBe(true);
 
