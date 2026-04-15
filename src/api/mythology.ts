@@ -20,6 +20,7 @@ export type CreateMythologyPayload = {
 };
 export type UpdateMythologyPayload = CreateMythologyPayload;
 export type PatchMythologyPayload = Partial<CreateMythologyPayload>;
+export type PostMythologyPayload = Partial<CreateMythologyPayload>;
 
 const createAuthHeaders = (token: string): Record<string, string> => ({
   Authorization: `Bearer ${token}`,
@@ -89,6 +90,17 @@ export const patchMythologyEntity = (
     data: payload,
     headers: createAuthHeaders(token),
   });
+
+export const postMythologyEntity = (
+    request: APIRequestContext,
+    token: string,
+    id: number,
+    payload: PostMythologyPayload,
+): Promise<APIResponse> =>
+    request.post(`mythology/${id}`, {
+        data: payload,
+        headers: createAuthHeaders(token),
+    });
 
 export const patchMythologyEntityWithoutAuth = (
   request: APIRequestContext,

@@ -1,12 +1,12 @@
 import {
-  createMythologyEntity,
-  createMythologyEntityWithoutAuth,
-  deleteMythologyEntity,
-  deleteMythologyEntityWithoutAuth,
-  patchMythologyEntity,
-  patchMythologyEntityWithoutAuth,
-  replaceMythologyEntity,
-  replaceMythologyEntityWithoutAuth,
+    createMythologyEntity,
+    createMythologyEntityWithoutAuth,
+    deleteMythologyEntity,
+    deleteMythologyEntityWithoutAuth,
+    patchMythologyEntity,
+    patchMythologyEntityWithoutAuth, postMythologyEntity,
+    replaceMythologyEntity,
+    replaceMythologyEntityWithoutAuth,
 } from '../../src/api/mythology';
 import { expect, test } from '../fixtures/api-test';
 import {
@@ -221,6 +221,43 @@ test(
 
     expectApiErrorBodyContract(body);
   },
+);
+
+test(
+    'POST /mythology/{id} returns 405 Method Not Allowed',
+    { tag: '@negative' },
+    async ({ request, authToken, debugApiCall, mythologyEntityManager }) => {
+        const createdEntity = await test.step('Create entity for not allowed method', async () =>
+            mythologyEntityManager.create(),
+        );
+
+        const response = await test.step('Send not existing POST request', async () =>
+            debugApiCall(
+                {
+                    label: `Send not existing POST request for mythology entity ${createdEntity.id}`,
+                    request: {
+                        method: 'POST',
+                        url: `mythology/${createdEntity.id}`,
+                        headers: {
+                            Authorization: `Bearer ${authToken}`,
+                        },
+                        body: {},
+                    },
+                },
+                () => postMythologyEntity(request, authToken, createdEntity.id, {}),
+            ),
+        );
+
+        expect(response.status()).toBe(405);
+        expectJsonContentType(response);
+
+        const body = await test.step(
+            'Returns 405 Method Not Allowed',
+            async () => (await response.json()) as unknown,
+        );
+
+        expectApiErrorBodyContract(body);
+    },
 );
 
 for (const systemEntityId of protectedSystemEntityIds) {
