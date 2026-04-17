@@ -82,3 +82,20 @@ export function expectApiErrorBodyContract(
     expect(candidate.success).toEqual(expect.any(Boolean));
   }
 }
+
+export function expectApiErrorMethodNotAllowed(
+  body: unknown,
+): asserts body is ApiErrorBody {
+  expect(body, '405 body should be an object').toEqual(expect.any(Object));
+
+  const candidate = body as ApiErrorBody;
+  const hasError = typeof candidate.error === 'string' && candidate.error.length > 0;
+  const hasMessage = typeof candidate.message === 'string' && candidate.message.length > 0;
+
+  expect(hasError || hasMessage, '405 response must have a message').toBe(true);
+  if (candidate.success !== undefined) {
+    expect(candidate.success).toBe(false);
+  }
+}
+
+

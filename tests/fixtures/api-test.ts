@@ -11,12 +11,11 @@ import {
 import { createAuthSession, type AuthSession } from '../../src/api/auth';
 import { env } from '../../src/config/env';
 import {
-  createMythologyEntity,
-  deleteMythologyEntity,
   type CreateMythologyPayload,
   type MythologyEntity,
 } from '../../src/api/mythology';
 import { createMythologyPayload } from '../support/mythology-test-data';
+import { MythologyApiClient } from '../../src/api/MythologyApiClient';
 
 type ApiRequestDebug = {
   method: string;
@@ -40,9 +39,11 @@ type ApiDebugCall = <T extends APIResponse>(
   action: () => Promise<T>,
 ) => Promise<T>;
 
+
 type ApiFixtures = {
   authToken: string;
   debugApiCall: ApiDebugCall;
+  mythologyApiClient: MythologyApiClient;
   mythologyEntityManager: MythologyEntityManager;
 };
 
@@ -154,7 +155,7 @@ const buildRequestSnapshot = (request: ApiRequestDebug): ApiRequestDebug => ({
 
 export const test = base.extend<ApiFixtures, ApiWorkerFixtures>({
   authSession: [
-    async ({}, use) => {
+    async ({ }, use) => {
       const authRequest = await playwrightRequest.newContext({
         baseURL: requireBaseUrl(),
       });
@@ -173,7 +174,7 @@ export const test = base.extend<ApiFixtures, ApiWorkerFixtures>({
     await use(authSession.token);
   },
 
-  debugApiCall: async ({}, use, testInfo) => {
+  debugApiCall: async ({ }, use, testInfo) => {
     const apiExchanges: ApiExchange[] = [];
 
     const debugApiCall: ApiDebugCall = async (metadata, action) => {
@@ -245,68 +246,44 @@ export const test = base.extend<ApiFixtures, ApiWorkerFixtures>({
       });
     }
   },
+  mythologyApiClient: async ({ request, authToken }, use) => {
+    const client = new MythologyApiClient(request, authToken);
+    await use(client);
+  },
 
-  mythologyEntityManager: async ({ request, authToken, debugApiCall }, use) => {
+  mythologyEntityManager: async ({ mythologyApiClient, debugApiCall }, use) => {
     const trackedEntityIds = new Set<number>();
 
     const manager: MythologyEntityManager = {
       create: async (overrides = {}) => {
         const payload = createMythologyPayload(overrides);
+
         const response = await debugApiCall(
           {
             label: 'Create temporary mythology entity',
-            request: {
-              method: 'POST',
-              url: 'mythology',
-              headers: {
-                Authorization: `Bearer ${authToken}`,
-              },
-              body: payload,
-            },
+            request: { method: 'POST', url: 'mythology', body: payload }
           },
-          () => createMythologyEntity(request, authToken, payload),
+          () => mythologyApiClient.create(payload)
         );
 
         if (!response.ok()) {
-          throw new Error(
-            `Create mythology entity failed: ${response.status()} ${await response.text()}`,
-          );
+          throw new Error(`Create failed: ${response.status()}`);
         }
 
         const entity = (await response.json()) as MythologyEntity;
         trackedEntityIds.add(entity.id);
-
         return entity;
       },
 
-      track: (id: number) => {
-        trackedEntityIds.add(id);
-      },
+      track: (id: number) => trackedEntityIds.add(id),
     };
 
     await use(manager);
 
     for (const entityId of Array.from(trackedEntityIds).reverse()) {
-      const response = await debugApiCall(
-        {
-          label: `Clean up mythology entity ${entityId}`,
-          request: {
-            method: 'DELETE',
-            url: `mythology/${entityId}`,
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-            },
-          },
-        },
-        () => deleteMythologyEntity(request, authToken, entityId),
-      );
-
-      if (response.status() === 204 || response.status() === 404) {
-        continue;
-      }
-
-      throw new Error(
-        `Cleanup failed for mythology entity ${entityId}: ${response.status()} ${await response.text()}`,
+      await debugApiCall(
+        { label: `Clean up entity ${entityId}`, request: { method: 'DELETE', url: `mythology/${entityId}` } },
+        () => mythologyApiClient.delete(entityId)
       );
     }
   },
