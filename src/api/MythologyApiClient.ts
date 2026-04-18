@@ -1,5 +1,6 @@
 
 import { APIRequestContext, APIResponse } from '@playwright/test';
+import { CreateMythologyPayload } from './mythology';
 
 export class MythologyApiClient {
     private readonly baseUrl = 'mythology';
@@ -21,21 +22,21 @@ export class MythologyApiClient {
         return headers;
     }
 
-    async create(payload: unknown): Promise<APIResponse> {
+    async create(payload: CreateMythologyPayload): Promise<APIResponse> {
         return this.request.post(this.baseUrl, {
             data: payload,
             headers: this.getHeaders(),
         });
     }
 
-    async update(id: number, payload: unknown): Promise<APIResponse> {
+    async update(id: number, payload: Partial<CreateMythologyPayload>): Promise<APIResponse> {
         return this.request.put(`${this.baseUrl}/${id}`, {
             data: payload,
             headers: this.getHeaders(),
         });
     }
 
-    async patch(id: number, payload: unknown): Promise<APIResponse> {
+    async patch(id: number, payload: Partial<CreateMythologyPayload>): Promise<APIResponse> {
         return this.request.patch(`${this.baseUrl}/${id}`, {
             data: payload,
             headers: this.getHeaders(),
@@ -48,7 +49,7 @@ export class MythologyApiClient {
         });
     }
 
-    async postToItem(id: number, payload: unknown): Promise<APIResponse> {
+    async postToItem(id: number, payload: Partial<CreateMythologyPayload>): Promise<APIResponse> {
         return this.request.post(`${this.baseUrl}/${id}`, {
             data: payload,
             headers: this.getHeaders(),
