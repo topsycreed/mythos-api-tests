@@ -7,8 +7,9 @@ import {
 import { type MythologyEntity } from '../../src/api/mythology';
 
 type ApiErrorBody = {
+  statusCode?: number;
   error?: string;
-  message?: string;
+  message?: string | string[];
   success?: boolean;
 };
 
@@ -69,32 +70,37 @@ export function expectLoginResponseContract(
 
 export function expectApiErrorBodyContract(
   body: unknown,
+  expectedStatus: number,
+  expectedError?: string,
+  expectedMessage?: string | RegExp
 ): asserts body is ApiErrorBody {
   expect(body).toEqual(expect.any(Object));
-
   const candidate = body as ApiErrorBody;
-  const hasError = typeof candidate.error === 'string' && candidate.error.length > 0;
-  const hasMessage = typeof candidate.message === 'string' && candidate.message.length > 0;
 
-  expect(hasError || hasMessage).toBe(true);
-
-  if (candidate.success !== undefined) {
-    expect(candidate.success).toEqual(expect.any(Boolean));
+  if (candidate.statusCode !== undefined) {
+    expect(candidate.statusCode).toBe(expectedStatus);
+  }
+  if (expectedError) {
+    expect(candidate.error).toBe(expectedError);
+  }
+  if (expectedMessage) {
+    if (expectedMessage instanceof RegExp) {
+      expect(candidate.message).toMatch(expectedMessage);
+    } else {
+      expect(candidate.message).toContain(expectedMessage);
+    }
   }
 }
 
 export function expectApiErrorMethodNotAllowed(
   body: unknown,
 ): asserts body is ApiErrorBody {
-  expect(body, '405 body should be an object').toEqual(expect.any(Object));
+  expectApiErrorBodyContract(body, 405, "Метод POST не поддерживается. Используйте GET, PUT, PATCH или DELETE.");
 
   const candidate = body as ApiErrorBody;
-  const hasError = typeof candidate.error === 'string' && candidate.error.length > 0;
-  const hasMessage = typeof candidate.message === 'string' && candidate.message.length > 0;
 
-  expect(hasError || hasMessage, '405 response must have a message').toBe(true);
   if (candidate.success !== undefined) {
-    expect(candidate.success).toBe(false);
+    expect(candidate.success, '405 response success flag should be false').toBe(false);
   }
 }
 

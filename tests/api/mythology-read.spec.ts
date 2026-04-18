@@ -215,5 +215,5 @@ test('GET /mythology/{id} returns 404 for a non-existent entity', { tag: '@read'
     async () => (await response.json()) as unknown,
   );
 
-  expectApiErrorBodyContract(body);
+  expectApiErrorBodyContract(body, 404, "Персонаж не найден");
 });

@@ -35,10 +35,11 @@ test.describe('Mythology Security & Validation (Negative Cases)', () => {
         { label: `Unauthorized ${name} attempt`, request: { method: name, url: 'mythology' } },
         () => run(noAuthClient)
       );
+      const body = await response.json();
 
       expect(response.status()).toBe(401);
       expectJsonContentType(response);
-      expectApiErrorBodyContract(await response.json());
+      expectApiErrorBodyContract(body, 401, 'Доступ запрещен. Нужен токен.');;
     });
   }
 
@@ -52,8 +53,10 @@ test.describe('Mythology Security & Validation (Negative Cases)', () => {
         () => mythologyApiClient.create(testCase.payload)
       );
 
+      const body = await response.json();
+
       expect(response.status()).toBe(400);
-      expectApiErrorBodyContract(await response.json());
+      expectApiErrorBodyContract(body, 400, "Поля name и category обязательны.");
     });
   }
 
@@ -65,8 +68,10 @@ test.describe('Mythology Security & Validation (Negative Cases)', () => {
           () => run(mythologyApiClient, nonExistentId)
         );
 
+        const body = await response.json();
+
         expect(response.status()).toBe(404);
-        expectApiErrorBodyContract(await response.json());
+        expectApiErrorBodyContract(body, 404, "Персонаж не найден");
       });
   }
 
@@ -79,8 +84,10 @@ test.describe('Mythology Security & Validation (Negative Cases)', () => {
       () => mythologyApiClient.update(entity.id, incompletePayload)
     );
 
+    const body = await response.json();
+
     expect(response.status()).toBe(400);
-    expectApiErrorBodyContract(await response.json());
+    expectApiErrorBodyContract(body, 400, "Для PUT запроса необходимо передать все поля: name, category, desc.");
   });
 
   /**
@@ -119,6 +126,7 @@ test.describe('Mythology Security & Validation (Negative Cases)', () => {
         () => mythologyApiClient.update(id, createMythologyPayload())
       );
       expect(putRes.status()).toBe(403);
+      expectApiErrorBodyContract(await putRes.json(), 403, "Запрещено! Базовые персонажи (ID 1-31) доступны только для чтения.");
 
       // Test DELETE 403
       const delRes = await debugApiCall(
@@ -126,6 +134,7 @@ test.describe('Mythology Security & Validation (Negative Cases)', () => {
         () => mythologyApiClient.delete(id)
       );
       expect(delRes.status()).toBe(403);
+      expectApiErrorBodyContract(await delRes.json(), 403, "Запрещено! Базовые персонажи (ID 1-31) доступны только для чтения.");
     });
   }
 });
