@@ -6,7 +6,6 @@ import {
   replaceMythologyEntity,
   type MythologyEntity,
 } from '../../src/api/mythology';
-import { expect, test } from '../fixtures/api-test';
 import {
   createMythologyPayload,
   createPatchMythologyPayload,
@@ -17,6 +16,8 @@ import {
   expectMythologyEntityContract,
 } from '../support/contract-assertions';
 
+
+import { expect, test } from '../fixtures/api-test';
 test.describe.configure({ mode: 'serial' });
 
 test('POST /mythology creates a new entity', { tag: '@crud' }, async ({

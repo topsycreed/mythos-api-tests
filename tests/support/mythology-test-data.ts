@@ -23,7 +23,7 @@ const createEntitySuffix = (): string => {
 export const mythologyCategories = ['gods', 'heroes', 'creatures'] as const satisfies readonly MythologyCategory[];
 export const mythologySortDirections =
   ['asc', 'desc'] as const satisfies readonly MythologySortDirection[];
-export const protectedSystemEntityIds = [1, 31] as const;
+export const protectedSystemEntityIds = Array.from({ length: 31 }, (_, i) => i + 1);
 export const notFoundMythologyEntityId = 999_999_999;
 
 const toRequestCategory = (value: string): MythologyCategory =>
