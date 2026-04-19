@@ -9,6 +9,8 @@ import type {
 type InvalidCreateMythologyCase = {
   name: string;
   payload: CreateMythologyPayload;
+  expectedMessage: string
+  expectedStatus: number
 };
 
 const createEntitySuffix = (): string => {
@@ -62,12 +64,34 @@ export const createIncompletePutPayload = (
   category: toRequestCategory(entity.category),
 });
 
+
 export const invalidCreateMythologyCases: InvalidCreateMythologyCase[] = [
   {
-    name: 'empty name',
-    payload: createMythologyPayload({
-      desc: 'Missing name should trigger validation error.',
-      name: '',
-    }),
+    name: 'Empty name',
+    payload: createMythologyPayload({ name: '' }),
+    expectedStatus: 400,
+    expectedMessage: 'Поля name и category обязательны.',
   },
+  {
+    name: 'null category',
+    payload: createMythologyPayload({ category: null as any }),
+    expectedStatus: 400,
+    expectedMessage: "Поля name и category обязательны.",
+  },
+  {
+    name: 'Missing name field',
+    payload: (() => {
+      const p = createMythologyPayload();
+      delete (p as any).name;
+      return p;
+    })(),
+    expectedStatus: 400,
+    expectedMessage: 'Поля name и category обязательны.',
+  },
+  {
+    name: 'Long name',
+    payload: createMythologyPayload({ name: 'A'.repeat(501) }),
+    expectedStatus: 500,
+    expectedMessage: 'Ошибка при создании записи',
+  }
 ];

@@ -137,5 +137,23 @@ test.describe('Mythology Security & Validation (Negative Cases)', () => {
       expectApiErrorBodyContract(await delRes.json(), 403, "Запрещено! Базовые персонажи (ID 1-31) доступны только для чтения.");
     });
   }
+
+
+  test.describe('Part 3: Expanded Data-Driven Validation', () => {
+    for (const { name, payload, expectedStatus, expectedMessage } of invalidCreateMythologyCases) {
+      test(`POST /mythology returns ${expectedStatus} for ${name}`, { tag: '@negative' }, async ({ mythologyApiClient }) => {
+        const response = await mythologyApiClient.create(payload);
+        const body = await response.json();
+
+        expect(response.status()).toBe(expectedStatus);
+        expectApiErrorBodyContract(
+          body,
+          expectedStatus,
+          expectedMessage
+        );
+      });
+    }
+  });
+
 });
 
