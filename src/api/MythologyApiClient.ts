@@ -55,7 +55,12 @@ export class MythologyApiClient {
             headers: this.getHeaders(),
         });
     }
+
+    async get(params?: { category?: 'all' | 'gods' | 'heroes' | 'creatures', sort?: 'asc' | 'desc' }): Promise<APIResponse> {
+        return this.request.get(this.baseUrl, {
+            params,
+            headers: this.getHeaders(),
+        });
+    }
 }
-
-
 
