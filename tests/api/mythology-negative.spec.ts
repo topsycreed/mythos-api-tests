@@ -143,7 +143,7 @@ for (const testCase of invalidCreateMythologyCases) {
   );
 }
 
-  test(
+test(
   'PUT /mythology/{id} returns 400 when full payload is not provided',
   { tag: '@negative' },
   async ({ request, authToken, debugApiCall, mythologyEntityManager }) => {
@@ -291,3 +291,37 @@ for (const systemEntityId of protectedSystemEntityIds) {
     },
   );
 }
+
+test(
+  'POST /mythology/{id} returns 405 Method Not Allowed',
+  { tag: '@negative' },
+  async ({ request, authToken, debugApiCall, mythologyEntityManager }) => {
+    const createdEntity = await test.step('Create entity for 405 test', async () =>
+      mythologyEntityManager.create(),
+    );
+
+    const response = await test.step('Send post request with an existing entity id', async () =>
+      debugApiCall(
+        {
+          label: `Send post request to mythology entity ${createdEntity.id}`,
+          request: {
+            method: 'POST',
+            url: `mythology/${createdEntity.id}`,
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+            body: {},
+          },
+        },
+        () =>
+          request.post(`mythology/${createdEntity.id}`, {
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          }),
+      ),
+    );
+
+    expect(response.status()).toBe(405);
+  },
+)
