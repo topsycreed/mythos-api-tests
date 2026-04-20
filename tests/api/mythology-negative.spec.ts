@@ -142,6 +142,8 @@ for (const testCase of invalidCreateMythologyCases) {
       );
 
       expectApiErrorBodyContract(body);
+
+      expect(body.error).toEqual("Поля name и category обязательны.");
     },
   );
 }
@@ -186,6 +188,8 @@ test(
     );
 
     expectApiErrorBodyContract(body);
+
+    expect(body.error).toEqual("Для PUT запроса необходимо передать все поля: name, category, desc.");
   },
 );
 
@@ -223,6 +227,8 @@ test(
     );
 
     expectApiErrorBodyContract(body);
+
+    expect(body.error).toEqual("Тело запроса не может быть пустым.");
   },
 );
 
@@ -259,6 +265,8 @@ for (const systemEntityId of protectedSystemEntityIds) {
       );
 
       expectApiErrorBodyContract(body);
+
+      expect(body.error).toEqual("Запрещено! Базовые персонажи (ID 1-31) доступны только для чтения.");
     },
   );
 
@@ -291,6 +299,8 @@ for (const systemEntityId of protectedSystemEntityIds) {
       );
 
       expectApiErrorBodyContract(body);
+
+      expect(body.error).toEqual("Запрещено! Базовые персонажи (ID 1-31) доступны только для чтения.");
     },
   );
 }
